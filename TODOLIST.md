@@ -7,4 +7,5 @@
 7. ✅ Incluir la libreria de iconos oficial de VSC en su propia seccion (la pegue en la sección 8)
 8. ✅ Ver formas de configurar el proyecto con configuraciones que persistan entre sesiones
 9. ✅ Mostrar un menu de opciones desplegable
-10. Ver como se podria colapsar lineas de codigo (quizas FoldingRangeprovider)
+10. ✅ Ver como se podria colapsar lineas de codigo (quizas FoldingRangeprovider)
+11. Ver como abrir el archivo de configuración al dar click a un botón

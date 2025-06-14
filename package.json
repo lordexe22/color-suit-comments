@@ -10,15 +10,91 @@
     "Other"
   ],
   "activationEvents": [
-    "onStartupFinished"
+    "onLanguage:css",
+    "onLanguage:html",
+    "onLanguage:javascript",
+    "onLanguage:javascriptreact",
+    "onLanguage:typescript",
+    "onLanguage:typescriptreact"
   ],
   "main": "./dist/extension.js",
   "contributes": {
-    "commands": [],
-    "submenus": [],
+    "commands": [
+      {
+        "command": "colorSuitComments.options",
+        "title": "Options"
+      },
+      {
+        "command": "colorSuitComments.edit",
+        "title": "Edit"
+      },
+      {
+        "command": "colorSuitComments.toggleCollapse",
+        "title": "Toggle Collapse"
+      }
+    ],
+    "submenus": [
+      {
+        "id": "colorSuitComments.options",
+        "label": "Color Suit Comments Options",
+        "icon": "$(heart-filled)"
+      }
+    ],
     "menus": {
-      "editor/title": [],
-      "colorSuitComments.colors": []
+      "editor/title": [
+        {
+          "submenu": "colorSuitComments.options",
+          "group": "navigation"
+        }
+      ],
+      "colorSuitComments.options": [
+        { 
+          "command": "colorSuitComments.edit"
+        },
+        { 
+          "command": "colorSuitComments.toggleCollapse"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "Color Suit Comments",
+      "properties": {
+        "colorSuitComments.tags": {
+          "type": "array",
+          "items": {
+            "type":"object",
+            "properties": {
+              "tag": {
+                "type": "string",
+                "description": "Tag to search for in comments"
+              },
+              "color": {
+                "type": "string",
+                "description": "Text color to apply to the tag in comments"
+              },
+              "backgroundColor": {
+                "type": "string",
+                "description": "Background color to apply to the collapsible block containing the tag"
+              },
+              "fontFamily": {
+                "type": "string",
+                "description": "Font family to apply to the tag in comments"
+              }
+            },
+            "required": ["tag"],
+            "additionalProperties": false
+          },
+          "default": [
+            {
+              "tag": "error",
+              "color": "#ff4d4f",
+              "backgroundColor": "#ff4d4f20",
+              "fontFamily": "'Comic Sans MS', cursive"
+            }
+          ],
+          "description": "Array of tags with custom styling for Color Suit Comments"
+        }
+      }
     }
   },
   "scripts": {
