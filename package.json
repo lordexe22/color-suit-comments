@@ -9,15 +9,17 @@
   "categories": [
     "Other"
   ],
-  "activationEvents": [],
+  "activationEvents": [
+    "onStartupFinished"
+  ],
   "main": "./dist/extension.js",
   "contributes": {
-    "commands": [
-      {
-        "command": "color-suit-comments.helloWorld",
-        "title": "Hello World"
-      }
-    ]
+    "commands": [],
+    "submenus": [],
+    "menus": {
+      "editor/title": [],
+      "colorSuitComments.colors": []
+    }
   },
   "scripts": {
     "vscode:prepublish": "npm run package",
