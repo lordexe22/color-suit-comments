@@ -3,16 +3,30 @@ import * as vscode from 'vscode';
 const CONFIG_KEY = 'colorSuitComments.tags';
 
 // Lista de decoraciones activas para poder limpiarlas en cada actualización
-let activeDecorations: vscode.TextEditorDecorationType[] = [];
+const activeDecorationsMap = new Map<string, vscode.TextEditorDecorationType[]>();
 
 //#region ⁡⁣⁢⁣DEFAULT_TAGS⁡ - Define las etiquetas por defecto en la aplicación
 /** Define las etiquetas por defecto en la aplicación */
 const DEFAULT_TAGS = [
   {
-    tag: "error",
-    color: "#ff4d4f",
-    backgroundColor: "#ff4d4f20",
-    fontFamily: "'Comic Sans MS', cursive"
+    tag: 'error',
+    color: '#ff4d4f',
+    backgroundColor: '#ff4d4f20'
+  },
+  {
+    tag: 'warning',
+    color: '#ffff4f',
+    backgroundColor: '#ffff4f20'
+  },
+  {
+    tag: 'todo',
+    color: '#ffa04f',
+    backgroundColor: '#ffa04f20'
+  },
+  {
+    tag: 'info',
+    color: '#4080f0',
+    backgroundColor: '#4080f020'
   }
 ];
 //#endregion
@@ -118,9 +132,13 @@ const applyDecorationsToEditor = (editor: vscode.TextEditor) => {
   const tagConfigs = config.get<any[]>(CONFIG_KEY) || [];
   const baseRegexes = getRegexPatternsForLanguage(languageId);
 
-  // Limpiar decoraciones anteriores
-  activeDecorations.forEach(decoration => decoration.dispose());
-  activeDecorations = [];
+  const docUri = editor.document.uri.toString();
+
+  // Limpiar decoraciones anteriores SOLO para este documento
+  const existingDecorations = activeDecorationsMap.get(docUri);
+  if (existingDecorations) {
+    existingDecorations.forEach(decoration => decoration.dispose());
+  }
 
   tagConfigs.forEach(tagConfig => {
     const { tag, color, backgroundColor } = tagConfig;
@@ -144,7 +162,12 @@ const applyDecorationsToEditor = (editor: vscode.TextEditor) => {
     });
 
     editor.setDecorations(decorationType, matches);
-    activeDecorations.push(decorationType);
+
+    if (!activeDecorationsMap.has(docUri)) {
+      activeDecorationsMap.set(docUri, []);
+    }
+    activeDecorationsMap.get(docUri)!.push(decorationType);
+
   });
 };
 //#endregion
@@ -180,22 +203,22 @@ const handleActiveDocument = (document: vscode.TextDocument) => {
 
 //#region ⁡⁣⁣⁢⭐activate⁡ - Activación de la extensión
 export const activate = (context: vscode.ExtensionContext) => {
+
+  //#region ✅1. Crea el comando editCommand y lo suscribe. Esto ejecuta ⁡⁣⁣⁢handleEditCommand⁡ cuando se le da click al botón edit
   const editCommand = vscode.commands.registerCommand('colorSuitComments.edit', handleEditCommand);
   context.subscriptions.push(editCommand);
+  //#endregion
 
-    // Llamar al abrir la extensión (por si ya hay un editor abierto)
-  const activeDoc = vscode.window.activeTextEditor?.document;
-  if (activeDoc) {
-    handleActiveDocument(activeDoc);
-  }
-
-  // Llamar cada vez que se abra un documento
-  const openListener = vscode.workspace.onDidOpenTextDocument((doc) => {
-    handleActiveDocument(doc);
+  //#region ✅2. Aplica decoraciones sobre el editor activo cada vez que cambia la visibilidad de los editores (nuevo panel, cierre, etc.). Ejecuta el método ⁡⁣⁣⁢handleActiveDocument⁡
+  const visibleEditorsListener = vscode.window.onDidChangeVisibleTextEditors(editors => {
+    editors.forEach(editor => {
+      handleActiveDocument(editor.document);
+    });
   });
-  context.subscriptions.push(openListener);
+  context.subscriptions.push(visibleEditorsListener);
+  //#endregion
 
-  //#region ⁡⁣⁣⁢onDidChangeActiveTextEditor⁡ - Aplica decoraciones al cambiar de pestaña o abrir un archivo
+  //#region ✅3. Listener que aplica decoradores cada vez que el usuario cambia de pestaña o abre un archivo. Ejecuta el método ⁡⁣⁣⁢handleActiveDocument⁡
   vscode.window.onDidChangeActiveTextEditor(editor => {
     if (editor) {
       handleActiveDocument(editor.document);
@@ -203,16 +226,32 @@ export const activate = (context: vscode.ExtensionContext) => {
   });
   //#endregion
 
-
-  //#region ⁡⁣⁣⁢onDidChangeTextDocument⁡ - Escucha los cambios en el contenido del documento
-  vscode.workspace.onDidChangeTextDocument(event => {
-    // Ignoramos si no es el documento activo
-    const activeEditor = vscode.window.activeTextEditor;
-    if (activeEditor && event.document === activeEditor.document) {
+  //#region ✅4. Listener que se ejecuta cuando el usuario modifica un documento visible. Ejecuta el método ⁡⁣⁣⁢handleActiveDocument⁡
+  const changeListener = vscode.workspace.onDidChangeTextDocument(event => {
+    // Solo aplicamos si el documento modificado está actualmente visible
+    const isVisible = vscode.window.visibleTextEditors.some(editor => editor.document === event.document);
+    if (isVisible) {
       handleActiveDocument(event.document);
     }
   });
+  context.subscriptions.push(changeListener);
   //#endregion
+
+  vscode.window.visibleTextEditors.forEach(editor => {
+    handleActiveDocument(editor.document);
+  });
+
+  const closeListener = vscode.workspace.onDidCloseTextDocument(document => {
+    const docUri = document.uri.toString();
+    const decorations = activeDecorationsMap.get(docUri);
+    if (decorations) {
+      decorations.forEach(d => d.dispose());
+      activeDecorationsMap.delete(docUri);
+    }
+  });
+  context.subscriptions.push(closeListener);
+
+
 
 };
 //#endregion
