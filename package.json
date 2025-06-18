@@ -89,22 +89,22 @@
             {
               "tag": "error",
               "color": "#ff4d4f",
-              "backgroundColor": "#ff4d4f20"
+              "backgroundColor": "#3b2525"
             },
             {
               "tag": "warning",
               "color": "#ffff4f",
-              "backgroundColor": "#ffff4f20"
+              "backgroundColor": "#3b3b25"
             },
             {
               "tag": "todo",
               "color": "#ffa04f",
-              "backgroundColor": "#ffa04f20"
+              "backgroundColor": "#3b2f25"
             },
             {
               "tag": "info",
               "color": "#4080f0",
-              "backgroundColor": "#4080f020"
+              "backgroundColor": "#232b39"
             }
           ],
           "description": "Array of tags with custom styling for Color Suit Comments"
