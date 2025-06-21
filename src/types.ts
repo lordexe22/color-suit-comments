@@ -35,5 +35,26 @@ export type ResolvedBlockDecoration = {
   depth: number; // Cuanto más profundo, más prioridad visual (se renderiza después)
 };
 
+export interface BlockResult {
+  tag: string;
+  range: vscode.Range;
+  depth: number;
+}
 
+export interface OrphanResult {
+  tag: string;
+  range: vscode.Range;
+}
 
+export interface ResolvedTags {
+  blocks: BlockResult[];
+  orphans: OrphanResult[];
+}
+
+export interface TagComment {
+  tag: string;
+  type: 'header' | 'footer';
+  color?: string;
+  backgroundColor?: string;
+  range: vscode.Range;
+}

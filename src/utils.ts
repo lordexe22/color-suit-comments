@@ -7,7 +7,17 @@ import {
   DEFAULT_TAGS, 
   activeDecorationsMap 
 } from './config';
-import { TagBlock, TagMatch, TagConfig, ResolvedTagDecoration, ResolvedBlockDecoration } from './types';
+import { 
+  TagBlock, 
+  TagMatch,
+  TagConfig,
+  ResolvedTagDecoration,
+  ResolvedBlockDecoration,
+  BlockResult,
+  OrphanResult,
+  ResolvedTags,
+  TagComment 
+} from './types';
 //#endregion
 //#region ⁡⁢⁣⁢Funciones⁡
 //#region ✅ ⁡⁣⁣⁢handleEditCommand⁡ - Función principal del comando 'edit'
@@ -320,7 +330,6 @@ export const getTagsConfig = (): TagConfig[] => {
 
 //#endregion
 //#region 🕒 ⁡⁣⁣⁢buildResolvedDecorations⁡ - Une coincidencias con configuraciones
-
 /**
  * Combina una lista de coincidencias (TagMatch) con la configuración de etiquetas (TagConfig)
  * para obtener decoradores resueltos por coincidencia.
@@ -347,67 +356,166 @@ export const buildResolvedDecorations = (
     })
     .filter((d): d is NonNullable<typeof d> => {
       return d !== null;
-    });
+    })
+    .sort((a, b) => {
+    const lineDiff = a.range.start.line - b.range.start.line;
+    if (lineDiff !== 0) {
+      return lineDiff;
+    }
+    return a.range.start.character - b.range.start.character;
+  });
+    
 };
 
 //#endregion
-//#region 🕒 ⁡⁣⁣⁢applyResolvedDecorationsToEditor⁡ - Aplica decoraciones desde ResolvedTagDecoration[]
-/**
- * Aplica decoraciones visuales en un editor a partir de una lista de ResolvedTagDecoration.
- * Agrupa por combinación única de estilo (color + fondo) para eficiencia.
- *
- * @param editor - Editor sobre el cual aplicar las decoraciones
- * @param decorations - Lista de decoraciones resueltas desde el documento
- */
-export const applyResolvedDecorationsToEditor = (
-  editor: vscode.TextEditor,
-  decorations: ResolvedTagDecoration[]
-): void => {
-  const docUri = editor.document.uri.toString();
 
-  // 1️⃣ Limpiar decoraciones anteriores
-  if (activeDecorationsMap.has(docUri)) {
-    for (const decoration of activeDecorationsMap.get(docUri)!) {
-      decoration.dispose();
+//#region 🕒 ⁡⁣⁣⁢resolveTagBlocks⁡ - Retorna un objeto que identifica el rango de los bloques y de los huerfanos del documento
+export function resolveTagBlocks(tagsCommentData: TagComment[]): ResolvedTags {
+  const blocks: BlockResult[] = [];
+  const orphans: OrphanResult[] = [];
+
+  function resolveLevel(startIndex: number, endIndex: number, depth: number): void {
+    let i = startIndex;
+
+    while (i < endIndex) {
+      const current = tagsCommentData[i];
+
+      // Sólo analizamos headers
+      if (current.type === 'header') {
+        const tag = current.tag;
+        let counter = 1;
+        let j = i + 1;
+
+        while (j < endIndex) {
+          const next = tagsCommentData[j];
+          if (next.tag === tag) {
+            if (next.type === 'header') {counter++;}
+            if (next.type === 'footer') {counter--;}
+          }
+
+          if (counter === 0) {
+            // Bloque cerrado correctamente
+            const range = new vscode.Range(
+              current.range.start,
+              next.range.end
+            );
+
+            blocks.push({
+              tag,
+              range,
+              depth,
+            });
+
+            // Llamada recursiva para analizar dentro del bloque
+            resolveLevel(i + 1, j, depth + 1);
+
+            i = j + 1; // Continuar después del footer
+            break;
+          }
+
+          j++;
+        }
+
+        if (counter !== 0) {
+          // Si no se cerró el bloque, es huérfano
+          orphans.push({ tag, range: current.range });
+          i++; // Continuar con el siguiente
+        }
+      } else if (current.type === 'footer') {
+        // Footer sin header correspondiente
+        orphans.push({ tag: current.tag, range: current.range });
+        i++;
+      } else {
+        // Por si hay tipos desconocidos
+        i++;
+      }
     }
-    activeDecorationsMap.delete(docUri);
   }
 
-  // 2️⃣ Agrupar por estilo único
-  const grouped = new Map<
-    string,
-    { ranges: vscode.Range[]; options: vscode.DecorationRenderOptions }
-  >();
+  // Ejecutar análisis desde el inicio con profundidad 0
+  resolveLevel(0, tagsCommentData.length, 0);
 
-  for (const { color, backgroundColor, range } of decorations) {
-    const key = `${color ?? ''}|${backgroundColor ?? ''}`;
+  return { blocks, orphans };
+}
+//#endregion
 
-    if (!grouped.has(key)) {
-      grouped.set(key, {
-        ranges: [],
-        options: {
-          color,
-          backgroundColor,
-          isWholeLine: true,
-        },
+
+export const applyDecorationsForBlockContent = (
+  editor:vscode.TextEditor, 
+  tagsConfig:TagConfig[],
+  resolvedTags:ResolvedTags
+) => {
+  const blocks = resolvedTags.blocks.sort((a,b) => a.depth - b.depth);
+
+  // Se aplican los decoradores a los bloques, desde el menos al mas profundo (depth)
+  for (const block of blocks){
+    const config = tagsConfig.find(cfg => cfg.tag === block.tag); // Identifica la configuracion para el tag actual
+    if (!config?.backgroundColor) {continue;} // Si no tiene bgColor abandonamos esta iteracion en el bucle
+    const backgroundDecorator = vscode.window.createTextEditorDecorationType({
+      backgroundColor: config.backgroundColor,      
+      isWholeLine: true,
+      gutterIconPath: './icon.png'
+      
+    });
+    editor.setDecorations(backgroundDecorator, [new vscode.Range(block.range.start, block.range.end)]);
+  }
+};
+
+export const applyDecorationsForTagComments = (
+  editor: vscode.TextEditor,
+  tagsCommentData: ResolvedTagDecoration[]
+) => {
+  const groupedByStyle = new Map<string, vscode.Range[]>();
+
+  for (const comment of tagsCommentData) {
+    // Creamos una clave única para cada combinación de estilos
+    const styleKey = `${comment.backgroundColor ?? 'none'}|${comment.color ?? 'none'}`;
+
+    if (!groupedByStyle.has(styleKey)) {
+      groupedByStyle.set(styleKey, []);
+    }
+
+    groupedByStyle.get(styleKey)?.push(comment.range);
+  }
+
+  // Creamos un decorador para cada combinación única de estilos y lo aplicamos
+  for (const [styleKey, ranges] of groupedByStyle.entries()) {
+    const [backgroundColor, color] = styleKey.split('|');
+
+    const decorator = vscode.window.createTextEditorDecorationType({
+      backgroundColor: backgroundColor !== 'none' ? backgroundColor : undefined,
+      color: color !== 'none' ? color : undefined,
+      isWholeLine: true,
+      
+    });
+
+    editor.setDecorations(decorator, ranges);
+  }
+};
+
+
+export const applyFoldingForBlocks = (
+  document: vscode.TextDocument,
+  resolvedTags: ResolvedTags,
+  context: vscode.ExtensionContext
+) => {
+  const provider: vscode.FoldingRangeProvider = {
+    provideFoldingRanges(doc, _, __) {
+      if (doc.uri.toString() !== document.uri.toString()) {return [];}
+
+      return resolvedTags.blocks.map(block => {
+        return new vscode.FoldingRange(
+          block.range.start.line,
+          block.range.end.line,
+          vscode.FoldingRangeKind.Region
+        );
       });
     }
+  };
 
-    grouped.get(key)!.ranges.push(range);
-  }
+  const selector: vscode.DocumentSelector = { language: document.languageId, scheme: 'file' };
 
-  // 3️⃣ Aplicar decoraciones
-  const activeTypes: vscode.TextEditorDecorationType[] = [];
+  const providerDisposable = vscode.languages.registerFoldingRangeProvider(selector, provider);
 
-  for (const { options, ranges } of grouped.values()) {
-    const decorationType = vscode.window.createTextEditorDecorationType(options);
-    editor.setDecorations(decorationType, ranges);
-    activeTypes.push(decorationType);
-  }
-
-  // 4️⃣ Guardar referencia para limpiar después
-  activeDecorationsMap.set(docUri, activeTypes);
+  context.subscriptions.push(providerDisposable);
 };
-
-//#endregion
-

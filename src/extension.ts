@@ -3,6 +3,9 @@
 //#region ⁡⁢⁣⁢Importaciones⁡
 import * as vscode from 'vscode';
 import { 
+  applyDecorationsForBlockContent,
+  applyDecorationsForTagComments,
+  applyFoldingForBlocks,
   buildRegexPatterns,
   buildResolvedDecorations,
   getTagsConfig,
@@ -10,12 +13,13 @@ import {
   getTagNames,
   handleEditCommand,
   handleOnDidCloseTextDocument,
+  resolveTagBlocks
 } from './utils';
 //#endregion
 
 //#region 🕒 ⁡⁣⁣⁢decorateDocument⁡ - Maneja la activación de decoraciones al abrir un documento
 /** Maneja la activación de decoraciones al abrir un documento */
-const decorateDocument = (document: vscode.TextDocument) => {
+const decorateDocument = (context: vscode.ExtensionContext, document: vscode.TextDocument) => {
   //#region ✅1. Obtener etiquetas y lenguaje del documento actual y una referencia al editor -> ⁡⁣⁢⁣tags⁡, ⁡⁣⁢⁣languageId⁡, ⁡⁣⁢⁣editor⁡
   const tags = getTagNames();
   const languageId = document.languageId;
@@ -31,17 +35,23 @@ const decorateDocument = (document: vscode.TextDocument) => {
   //#region ✅4. Captura de la configuración de las etiquetas -> ⁡⁣⁢⁣tagsConfig = { tag, color?, backgroundColor? }⁡
   const tagsConfig = getTagsConfig();
   //#endregion  
-  //#region ✅5. Se combinan los comentarios obtenidos con las expresiones regulares con sus respectivos decoradores -> ⁡⁣⁢⁣headerDecorations = {tag, color?, backgroundColor?, type, vscode.range}⁡
-  const headerDecorations = buildResolvedDecorations(headerMatchesData, tagsConfig);
-  const footerDecorations = buildResolvedDecorations(footerMatchesData, tagsConfig);
-
+  //#region ✅5. Se combinan los comentarios con sus respectivos decoradores -> ⁡⁣⁢⁣tagsCommentData = {tag, color?, backgroundColor?, type, vscode.range}⁡
+  const tagsCommentData = buildResolvedDecorations([...headerMatchesData,...footerMatchesData], tagsConfig);
   //#endregion
-  //#region ✅6. Emparejar bloques válidos y detectar etiquetas sin pareja -> ⁡⁣⁢⁣blocks⁡, ⁡⁣⁢⁣orphanTags⁡
+  //#region ✅6. Emparejar bloques válidos y detectar etiquetas sin pareja -> ⁡⁣⁢⁣resolvedTags = {blocks⁡, ⁡⁣⁢⁣orphanTags} ⁡
+  const resolvedTags = resolveTagBlocks(tagsCommentData);
   //#endregion
-
-
-
-  console.log('test');
+  //#region ✅7. Aplicar los decoradores a los bloques y a los huerfanos
+  if(editor){
+    applyDecorationsForBlockContent(editor, tagsConfig, resolvedTags);
+    applyDecorationsForTagComments(editor, tagsCommentData);
+  }
+  //#endregion
+  //#region ✅8. Aplicarle a los bloques la propiedad para que sean colapsables
+  if (editor) {
+    applyFoldingForBlocks(document, resolvedTags, context);
+  }
+  //#endregion
 };
 //#endregion
 
@@ -54,14 +64,14 @@ export const activate = (context: vscode.ExtensionContext) => {
   //#region ✅2. Aplica decoraciones sobre el editor activo cada vez que cambia la visibilidad de los editores (nuevo panel, cierre, etc.). Ejecuta el método ⁡⁣⁣⁢decorateDocument⁡
   const visibleEditorsListener = vscode.window.onDidChangeVisibleTextEditors(editors => {
     editors.forEach(editor => {
-      decorateDocument(editor.document);
+      decorateDocument(context, editor.document);
     });
   });
   context.subscriptions.push(visibleEditorsListener);
   //#endregion
   //#region ✅3. Listener que aplica decoradores cada vez que el usuario cambia de pestaña o abre un archivo. Ejecuta el método ⁡⁣⁣⁢decorateDocument⁡
   const activeEditorListener = vscode.window.onDidChangeActiveTextEditor(editor => {
-    editor && decorateDocument(editor.document);
+    editor && decorateDocument(context, editor.document);
   });
   context.subscriptions.push(activeEditorListener);
   //#endregion
@@ -70,14 +80,14 @@ export const activate = (context: vscode.ExtensionContext) => {
     // Solo aplicamos si el documento modificado está actualmente visible
     const isVisible = vscode.window.visibleTextEditors.some(editor => editor.document === event.document);
     if (isVisible) {
-      decorateDocument(event.document);
+      decorateDocument(context, event.document);
     }
   });
   context.subscriptions.push(changeListener);
   //#endregion
   //#region ✅5. Loop que recorre todos los editores abiertos por el usuario y les aplica los decoradores a cada uno de ellos. Ejecuta el método ⁡⁣⁣⁢decorateDocument⁡.
   vscode.window.visibleTextEditors.forEach(editor => {
-    decorateDocument(editor.document);
+    decorateDocument(context, editor.document);
   });
   //#endregion
   //#region ✅6. Listener que se activa el cerrar un editor. Elimina todos los decoradores del editor cerrado y libera memoria para no escuchar más eventos en ese editor.
