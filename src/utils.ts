@@ -368,7 +368,6 @@ export const buildResolvedDecorations = (
 };
 
 //#endregion
-
 //#region 🕒 ⁡⁣⁣⁢resolveTagBlocks⁡ - Retorna un objeto que identifica el rango de los bloques y de los huerfanos del documento
 export function resolveTagBlocks(tagsCommentData: TagComment[]): ResolvedTags {
   const blocks: BlockResult[] = [];
@@ -438,8 +437,48 @@ export function resolveTagBlocks(tagsCommentData: TagComment[]): ResolvedTags {
   return { blocks, orphans };
 }
 //#endregion
+//#region 🕒 ⁡⁣⁣⁢decorateDocument⁡ - Maneja la activación de decoraciones al abrir un documento
+/** Maneja la activación de decoraciones al abrir un documento */
+export const decorateDocument = (context: vscode.ExtensionContext, document: vscode.TextDocument) => {
+  //#region ✅1. Obtener etiquetas y lenguaje del documento actual y una referencia al editor -> ⁡⁣⁢⁣tags⁡, ⁡⁣⁢⁣languageId⁡, ⁡⁣⁢⁣editor⁡
+  const tags = getTagNames();
+  const languageId = document.languageId;
+  const editor = vscode.window.visibleTextEditors.find(e => e.document === document);
+  //#endregion
+  //#region ✅2. Capturar las expresiones regulares de los encabezados y pies de los bloques colapsables -> ⁡⁣⁢⁣headerPatterns⁡, ⁡⁣⁢⁣footerPatterns⁡
+  const {headerPatterns, footerPatterns } = buildRegexPatterns(tags, languageId);
+  //#endregion 
+  //#region ✅3. Captura los rangos de las aperturas y los cierres que coinciden con las expresiones regulares -> ⁡⁣⁢⁣headerMatchesData⁡, ⁡⁣⁢⁣footerMatchesData⁡ 
+  const headerMatchesData = getTagMatchData(document, headerPatterns, tags, 'header');
+  const footerMatchesData = getTagMatchData(document, footerPatterns, tags, 'footer');
+  //#endregion
+  //#region ✅4. Captura de la configuración de las etiquetas -> ⁡⁣⁢⁣tagsConfig = { tag, color?, backgroundColor? }⁡
+  const tagsConfig = getTagsConfig();
+  //#endregion  
+  //#region ✅5. Se combinan los comentarios con sus respectivos decoradores -> ⁡⁣⁢⁣tagsCommentData = {tag, color?, backgroundColor?, type, vscode.range}⁡
+  const tagsCommentData = buildResolvedDecorations([...headerMatchesData,...footerMatchesData], tagsConfig);
+  //#endregion
+  //#region ✅6. Emparejar bloques válidos y detectar etiquetas sin pareja -> ⁡⁣⁢⁣resolvedTags = {blocks⁡, ⁡⁣⁢⁣orphanTags} ⁡
+  const resolvedTags = resolveTagBlocks(tagsCommentData);
+  //#endregion
+  
+  //#region 6a. Auxiliar - elimina los decoradores existentes en el documento antes de aplicarle los nuevos
+  clearDecorationsForDocument(document);
+  //#endregion
 
-
+  //#region ✅7. Aplicar los decoradores a los bloques y a los huerfanos
+  if(editor){
+    applyDecorationsForBlockContent(editor, tagsConfig, resolvedTags);
+    applyDecorationsForTagComments(editor, tagsCommentData);
+  }
+  //#endregion
+  //#region ✅8. Aplicarle a los bloques la propiedad para que sean colapsables
+  if (editor) {
+    applyFoldingForBlocks(document, resolvedTags, context);
+  }
+  //#endregion
+};
+//#endregion
 export const applyDecorationsForBlockContent = (
   editor:vscode.TextEditor, 
   tagsConfig:TagConfig[],
@@ -457,10 +496,25 @@ export const applyDecorationsForBlockContent = (
       gutterIconPath: './icon.png'
       
     });
-    editor.setDecorations(backgroundDecorator, [new vscode.Range(block.range.start, block.range.end)]);
+
+    const start = block.range.start;
+    const end = block.range.end;
+
+    // Ajustar para excluir header y footer (líneas del header y footer)
+    const adjustedStart = start.line + 1 <= end.line ? start.translate(1, 0) : start;
+    const adjustedEnd = end.line - 1 >= start.line ? end.translate(-1, 0) : end;
+
+    const adjustedRange = new vscode.Range(adjustedStart, adjustedEnd);
+
+    editor.setDecorations(backgroundDecorator, [adjustedRange]);
+    
+    const key = editor.document.uri.toString();
+    if (!activeDecorationsMap.has(key)) {
+      activeDecorationsMap.set(key, []);
+    }
+    activeDecorationsMap.get(key)?.push(backgroundDecorator);
   }
 };
-
 export const applyDecorationsForTagComments = (
   editor: vscode.TextEditor,
   tagsCommentData: ResolvedTagDecoration[]
@@ -490,10 +544,15 @@ export const applyDecorationsForTagComments = (
     });
 
     editor.setDecorations(decorator, ranges);
+
+    const key = editor.document.uri.toString();
+    if (!activeDecorationsMap.has(key)) {
+      activeDecorationsMap.set(key, []);
+    }
+    activeDecorationsMap.get(key)?.push(decorator);
+    
   }
 };
-
-
 export const applyFoldingForBlocks = (
   document: vscode.TextDocument,
   resolvedTags: ResolvedTags,
@@ -518,4 +577,15 @@ export const applyFoldingForBlocks = (
   const providerDisposable = vscode.languages.registerFoldingRangeProvider(selector, provider);
 
   context.subscriptions.push(providerDisposable);
+};
+export const clearDecorationsForDocument = (document: vscode.TextDocument) => {
+  const key = document.uri.toString();
+  const activeDecorations = activeDecorationsMap.get(key);
+  
+  if (activeDecorations && activeDecorations.length > 0) {
+    for (const decoration of activeDecorations) {
+      decoration.dispose();
+    }
+    activeDecorationsMap.delete(key);
+  }
 };

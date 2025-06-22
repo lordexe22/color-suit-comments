@@ -8,6 +8,8 @@ import {
   applyFoldingForBlocks,
   buildRegexPatterns,
   buildResolvedDecorations,
+  clearDecorationsForDocument,
+  decorateDocument,
   getTagsConfig,
   getTagMatchData,
   getTagNames,
@@ -17,43 +19,6 @@ import {
 } from './utils';
 //#endregion
 
-//#region 🕒 ⁡⁣⁣⁢decorateDocument⁡ - Maneja la activación de decoraciones al abrir un documento
-/** Maneja la activación de decoraciones al abrir un documento */
-const decorateDocument = (context: vscode.ExtensionContext, document: vscode.TextDocument) => {
-  //#region ✅1. Obtener etiquetas y lenguaje del documento actual y una referencia al editor -> ⁡⁣⁢⁣tags⁡, ⁡⁣⁢⁣languageId⁡, ⁡⁣⁢⁣editor⁡
-  const tags = getTagNames();
-  const languageId = document.languageId;
-  const editor = vscode.window.visibleTextEditors.find(e => e.document === document);
-  //#endregion
-  //#region ✅2. Capturar las expresiones regulares de los encabezados y pies de los bloques colapsables -> ⁡⁣⁢⁣headerPatterns⁡, ⁡⁣⁢⁣footerPatterns⁡
-  const {headerPatterns, footerPatterns } = buildRegexPatterns(tags, languageId);
-  //#endregion 
-  //#region ✅3. Captura los rangos de las aperturas y los cierres que coinciden con las expresiones regulares -> ⁡⁣⁢⁣headerMatchesData⁡, ⁡⁣⁢⁣footerMatchesData⁡ 
-  const headerMatchesData = getTagMatchData(document, headerPatterns, tags, 'header');
-  const footerMatchesData = getTagMatchData(document, footerPatterns, tags, 'footer');
-  //#endregion
-  //#region ✅4. Captura de la configuración de las etiquetas -> ⁡⁣⁢⁣tagsConfig = { tag, color?, backgroundColor? }⁡
-  const tagsConfig = getTagsConfig();
-  //#endregion  
-  //#region ✅5. Se combinan los comentarios con sus respectivos decoradores -> ⁡⁣⁢⁣tagsCommentData = {tag, color?, backgroundColor?, type, vscode.range}⁡
-  const tagsCommentData = buildResolvedDecorations([...headerMatchesData,...footerMatchesData], tagsConfig);
-  //#endregion
-  //#region ✅6. Emparejar bloques válidos y detectar etiquetas sin pareja -> ⁡⁣⁢⁣resolvedTags = {blocks⁡, ⁡⁣⁢⁣orphanTags} ⁡
-  const resolvedTags = resolveTagBlocks(tagsCommentData);
-  //#endregion
-  //#region ✅7. Aplicar los decoradores a los bloques y a los huerfanos
-  if(editor){
-    applyDecorationsForBlockContent(editor, tagsConfig, resolvedTags);
-    applyDecorationsForTagComments(editor, tagsCommentData);
-  }
-  //#endregion
-  //#region ✅8. Aplicarle a los bloques la propiedad para que sean colapsables
-  if (editor) {
-    applyFoldingForBlocks(document, resolvedTags, context);
-  }
-  //#endregion
-};
-//#endregion
 
 //#region ⁡⁣⁣⁢⭐activate⁡ - Activación de la extensión
 export const activate = (context: vscode.ExtensionContext) => {
@@ -94,11 +59,18 @@ export const activate = (context: vscode.ExtensionContext) => {
   const closeListener = vscode.workspace.onDidCloseTextDocument(handleOnDidCloseTextDocument);
   context.subscriptions.push(closeListener);
   //#endregion
+
+  context.subscriptions.push(
+    // vscode.commands.registerCommand('colorSuitComments.collapseAll', () => handleCollapseAll()),
+    // vscode.commands.registerCommand('colorSuitComments.expandAll', () => handleExpandAll()),
+    // vscode.commands.registerCommand('colorSuitComments.collapseByTag', () => handleCollapseByTag()),
+    // vscode.commands.registerCommand('colorSuitComments.expandByTag', () => handleExpandByTag())
+  );
+
 };
 //#endregion
 
 
 export function deactivate() {}
-
 
 
