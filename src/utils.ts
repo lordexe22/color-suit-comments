@@ -20,6 +20,49 @@ import {
 } from './types';
 //#endregion
 //#region ⁡⁢⁣⁢Funciones⁡
+//#region ✅ ⁡⁣⁣⁢getTagsConfiguration⁡ - Obtiene la configuración global del workspace
+/** 
+ * Retorna el objeto de configuración activo de VS Code.
+ *
+ * Los valores obtenidos con `.get()` respetan la siguiente prioridad:
+ * 1. settings.json de carpeta (en workspaces multi-root)
+ * 2. settings.json del workspace
+ * 3. settings.json global del usuario
+ *
+ * El valor más específico definido prevalece. Para ver todos los niveles, usar `.inspect(clave)`.
+ *
+ * @returns {vscode.WorkspaceConfiguration}
+ * @version 1.0.0
+ * @since 1.0.0
+ * @author Walter Ezequiel Puig
+ */
+export const getTagsConfiguration = (): vscode.WorkspaceConfiguration => {
+  return vscode.workspace.getConfiguration();
+};
+//#endregion
+//#region ✅ ⁡⁣⁣⁢getTagNames⁡ - Devuelve un arreglo con los nombres de las etiquetas existentes en settings.json
+/** 
+ * Devuelve una lista con los nombres de las etiquetas existentes en `settings.json`.
+ * En caso de tener más de una fuente de configuración, se establece el siguiente orden de prioridad:
+ * 
+ * 1. Folder (./.vscode/settings.json)
+ *
+ * 2. Workspace (*.code-workspace)
+ * 
+ * 3. Global (~/.config/Code/User/settings.json)
+ * 
+ * @returns {string[]} Arreglo con los nombres de las etiquetas de la extensión
+ * @version 1.0.0
+ * @since 1.0.0
+ * @author Walter Ezequiel Puig
+ */
+export const getTagNames = (): string[] => {
+  const config = getTagsConfiguration();
+  const tags = config.get<TagConfig[]>(CONFIG_KEY, []);
+  const tagNames = tags.map(tag => tag.tag).filter(Boolean);
+  return tagNames;
+};
+//#endregion
 //#region ✅ ⁡⁣⁣⁢handleEditCommand⁡ - Función principal del comando 'edit'
 /**
  * Función principal del comando `colorSuitComments.edit`. 
@@ -114,37 +157,6 @@ export const buildRegexPatterns = (tags: string[], languageId: string): { header
   return { headerPatterns, footerPatterns };
 };
 //#endregion
-//#region 🕒 ⁡⁣⁣⁢getConfiguration⁡ - Obtiene la configuración global del workspace
-/** 
- * Retorna un objeto con la configuración global del workspace
- * 
- * @returns {vscode.WorkspaceConfiguration}
- * @version 1.0.0
- * @since 1.0.0
- * @author Walter Ezequiel Puig
- */
-export const getConfiguration = (): vscode.WorkspaceConfiguration => {
-  return vscode.workspace.getConfiguration();
-};
-//#endregion
-
-//#region 🕒 ⁡⁣⁣⁢getTagNames⁡ - Devuelve un arreglo con los nombres de las etiquetas existentes en settings.json
-/** 
- * Devuelve una lista con los nombres de las etiquetas existentes en `settings.json`
- * 
- * @returns {string[]} Arreglo con los nombres de las etiquetas de la extensión
- * @version 1.0.0
- * @since 1.0.0
- * @author Walter Ezequiel Puig
- */
-export const getTagNames = (): string[] => {
-  const config = getConfiguration();
-  const tags = config.get<any[]>(CONFIG_KEY, []);
-  const tagNames = tags.map(tag => tag.tag).filter(Boolean);
-  return tagNames;
-};
-//#endregion
-
 //#region 🕒 ⁡⁣⁣⁢handleOnDidCloseTextDocument⁡ - Maneja el evento que se dispara al cerrar un documento en el editor.
 /**
  * Maneja el evento que se dispara al cerrar un documento en el editor.
@@ -180,7 +192,7 @@ export const handleOnDidCloseTextDocument = (document: vscode.TextDocument) :voi
  * @author Walter Ezequiel Puig
  */
 export const hasUserDefinedTags = (): boolean => {
-  const config = getConfiguration();
+  const config = getTagsConfiguration();
   const userValue = config.inspect(CONFIG_KEY);
 
   return Boolean(
@@ -205,7 +217,7 @@ export const hasUserDefinedTags = (): boolean => {
  * await setDefaultTagsConfiguration();
  */
 export const setDefaultTagsConfiguration = async (): Promise<void> => {
-  const config = getConfiguration();
+  const config = getTagsConfiguration();
   await config.update(CONFIG_KEY, DEFAULT_TAGS, vscode.ConfigurationTarget.Global);
 };
 //#endregion

@@ -3,19 +3,9 @@
 //#region ⁡⁢⁣⁢Importaciones⁡
 import * as vscode from 'vscode';
 import { 
-  applyDecorationsForBlockContent,
-  applyDecorationsForTagComments,
-  applyFoldingForBlocks,
-  buildRegexPatterns,
-  buildResolvedDecorations,
-  clearDecorationsForDocument,
   decorateDocument,
-  getTagsConfig,
-  getTagMatchData,
-  getTagNames,
   handleEditCommand,
   handleOnDidCloseTextDocument,
-  resolveTagBlocks
 } from './utils';
 //#endregion
 
