@@ -1,5 +1,4 @@
 // src\utils.ts
-
 //#region ⁡⁢⁣⁢Importaciones⁡
 import * as vscode from 'vscode';
 import { 
@@ -20,6 +19,42 @@ import {
 } from './types';
 //#endregion
 //#region ⁡⁢⁣⁢Funciones⁡
+//#region ✅ ⁡⁣⁣⁢buildRegexPatternsForHeaderAndFooter⁡ - Retorna un objeto con una lista de los patrones de busqueda de encabezado y pie de los bloques colapsables.
+/**
+ * Genera listas de expresiones regulares para identificar encabezados (`header`) y pies (`footer`)
+ * de bloques colapsables dentro de un documento de texto en función del lenguaje y las etiquetas definidas.
+ *
+ * @param tags - Lista con las etiquetas de los bloques colapsables.
+ * @param type - ID del lenguaje del documento (por ejemplo: 'javascript', 'typescript', etc).
+ * @returns {{ headerPatterns: RegExp[], footerPatterns: RegExp[] }} Objeto con listas de expresiones regulares.
+ * @version 1.0.0
+ * @since 1.0.0
+ * @author Walter Ezequiel Puig
+ */
+export const buildRegexPatternsForHeaderAndFooter = (tags: string[], languageId: string): { headerPatterns: RegExp[], footerPatterns: RegExp[] } => {
+  //#region ✅1 - Obtiene expresiones regulares para el header y el footer de un lenguaje de progrmaación determinado -> ⁡⁣⁢⁣headerRegexBase⁡, ⁡⁣⁢⁣footerRegexBase⁡
+  const headerRegexBase = getRegexPatternsForLanguage(languageId, 'header');
+  const footerRegexBase = getRegexPatternsForLanguage(languageId, 'footer');
+  //#endregion
+  //#region ✅2 - Construye expresiones completas para headers que incluyen todas las etiquetas personalizadas -> ⁡⁣⁢⁣headerPatterns⁡
+  const headerPatterns = tags.flatMap(tag =>
+    headerRegexBase.map(baseRegex => {
+      const pattern = baseRegex.source.replace('${tag}', tag);
+      return new RegExp(pattern, baseRegex.flags);
+    })
+  );
+  //#endregion
+  //#region ✅3 - Construye expresiones completas para footers que incluyen todas las etiquetas personalizadas -> ⁡⁣⁢⁣headerPatterns⁡
+  const footerPatterns = tags.flatMap(tag =>
+    footerRegexBase.map(baseRegex => {
+      const pattern = baseRegex.source.replace('${tag}', tag);
+      return new RegExp(pattern, baseRegex.flags);
+    })
+  );
+  //#endregion
+  return { headerPatterns, footerPatterns };
+};
+//#endregion
 //#region ✅ ⁡⁣⁣⁢clearDecorationsForDocument⁡ - Elimina decoradores activos de un documento antes de aplicar nuevos.
 /**
  * Elimina todas las decoraciones visuales activas asociadas a un documento específico.
@@ -130,6 +165,29 @@ export const getTagNames = (): string[] => {
   return tagNames;
 };
 //#endregion
+//#region ✅ ⁡⁣⁣⁢handleEditCommand⁡ - Función principal del comando 'edit'
+/**
+ * Función principal del comando `colorSuitComments.edit`. 
+ * 
+ * Esta función abre el archivo de configuración global `settings.json`, donde el usuario
+ * podrá modificar las etiquetas de la aplicación.
+ *
+ * @returns {void} 
+ * 
+ * @example
+ * ```typescript
+ * const editCommand = vscode.commands.registerCommand('colorSuitComments.edit', handleEditCommand);
+ * context.subscriptions.push(editCommand);
+ * ```
+ *
+ * @version 1.0.0
+ * @since 1.0.0
+ * @author Walter Ezequiel Puig
+ */
+export const handleEditCommand = (): void => {
+  vscode.commands.executeCommand('workbench.action.openSettingsJson');
+};
+//#endregion
 //#region ✅ ⁡⁣⁣⁢handleOnDidCloseTextDocument⁡ - Maneja el evento que se dispara al cerrar un documento en el editor.
 /**
  * Maneja el evento que se dispara al cerrar un documento en el editor.
@@ -175,21 +233,6 @@ export const hasDefinedTags = (): boolean => {
   );
 };
 //#endregion
-//#region ✅ ⁡⁣⁣⁢openSettingsJson⁡ -  Abre el archivo global de configuración (settings.json)
-/** 
- * Abre el archivo de configuración global `settings.json`
- * 
- * @returns {void}
- * @requires vscode
- * @throws {Error} Si no se logra abrir settings.json
- * @version 1.0.0
- * @since 1.0.0
- * @author Walter Ezequiel Puig
- */
-export const openSettingsJson = (): void => {
-  vscode.commands.executeCommand('workbench.action.openSettingsJson');
-};
-//#endregion
 //#region ✅ ⁡⁣⁣⁢setDefaultTagsConfiguration⁡ -  Establece los valores por defecto en el settings.json global
 /** 
  * Establece los valores por defecto para los comentarios en el archivo `settings.json` global.
@@ -210,39 +253,7 @@ export const setDefaultTagsConfiguration = async (): Promise<void> => {
 };
 //#endregion
 //#endregion
-
-//#region 🕒 ⁡⁣⁣⁢buildRegexPatterns⁡ - Retorna un objeto con una lista de los patrones de busqueda de encabezado y pie de los bloques colapsables.
-/**
- * Retorna un objeto con una lista de los patrones de busqueda de los encabezados y pies de los bloques colapsables.
- * 
- * @param tags - Lista con las etiquetas de los bloques colapsables.
- * @param type - ID del lenguaje del documento (por ejemplo: 'javascript', 'typescript').
- * @returns {{ headerPatterns: RegExp[], footerPatterns: RegExp[] }} Objeto con listas de expresiones regulares.
- * @version 1.0.0
- * @since 1.0.0
- * @author Walter Ezequiel Puig
- */
-export const buildRegexPatterns = (tags: string[], languageId: string): { headerPatterns: RegExp[], footerPatterns: RegExp[] } => {
-  const headerBase = getRegexPatternsForLanguage(languageId, 'header');
-  const footerBase = getRegexPatternsForLanguage(languageId, 'footer');
-
-  const headerPatterns = tags.flatMap(tag =>
-    headerBase.map(baseRegex => {
-      const pattern = baseRegex.source.replace('${tag}', tag);
-      return new RegExp(pattern, baseRegex.flags);
-    })
-  );
-
-  const footerPatterns = tags.flatMap(tag =>
-    footerBase.map(baseRegex => {
-      const pattern = baseRegex.source.replace('${tag}', tag);
-      return new RegExp(pattern, baseRegex.flags);
-    })
-  );
-
-  return { headerPatterns, footerPatterns };
-};
-//#endregion
+//#region ⁡⁢⁣⁢Refactorizar⁡
 //#region 🕒 ⁡⁣⁣⁢getRegexPatternsForLanguage⁡ - Retorna un arreglo de regex base para header o footer según el tipo
 /**
  * Retorna un arreglo con expresiones regulares para un identificar los patrones de apertura y cierre de los bloques colapsables.
@@ -285,10 +296,6 @@ export const getRegexPatternsForLanguage = (languageId: string, type: 'header' |
  * @example
  * const result = getTagMatchesInDocument(document, footerPatterns, ['error', 'info'], 'footer');
  * // [
- * //   { tag: 'error', type: 'header', range: Range(...) },
- * //   { tag: 'info', type: 'footer', range: Range(...) }
- * // ]
- *
  * @version 1.0.0
  * @since 1.0.0
  * @author Walter Ezequiel Puig
@@ -443,7 +450,7 @@ export const decorateDocument = (context: vscode.ExtensionContext, document: vsc
   const editor = vscode.window.visibleTextEditors.find(e => e.document === document);
   //#endregion
   //#region ✅2. Capturar las expresiones regulares de los encabezados y pies de los bloques colapsables -> ⁡⁣⁢⁣headerPatterns⁡, ⁡⁣⁢⁣footerPatterns⁡
-  const {headerPatterns, footerPatterns } = buildRegexPatterns(tags, languageId);
+  const {headerPatterns, footerPatterns } = buildRegexPatternsForHeaderAndFooter(tags, languageId);
   //#endregion 
   //#region ✅3. Captura los rangos de las aperturas y los cierres que coinciden con las expresiones regulares -> ⁡⁣⁢⁣headerMatchesData⁡, ⁡⁣⁢⁣footerMatchesData⁡ 
   const headerMatchesData = getTagMatchData(document, headerPatterns, tags, 'header');
@@ -491,8 +498,6 @@ export const applyDecorationsForBlockContent = (
     const backgroundDecorator = vscode.window.createTextEditorDecorationType({
       backgroundColor: config.backgroundColor,      
       isWholeLine: true,
-      gutterIconPath: './icon.png'
-      
     });
 
     const start = block.range.start;
@@ -555,69 +560,7 @@ export const applyDecorationsForTagComments = (
 };
 //#endregion
 //#region 🕒 ⁡⁣⁣⁢applyFoldingForBlocks⁡
-// export const applyFoldingForBlocks = (
-//   document: vscode.TextDocument,
-//   resolvedTags: ResolvedTags,
-//   context: vscode.ExtensionContext
-// ) => {
-//   const provider: vscode.FoldingRangeProvider = {
-//     provideFoldingRanges(doc, _, __) {
-//       if (doc.uri.toString() !== document.uri.toString()) {return [];}
-
-//       return resolvedTags.blocks.map(block => {
-//         return new vscode.FoldingRange(
-//           block.range.start.line,
-//           block.range.end.line,
-//           vscode.FoldingRangeKind.Region
-//         );
-//       });
-//     }
-//   };
-
-//   const selector: vscode.DocumentSelector = { language: document.languageId, scheme: 'file' };
-
-//   const providerDisposable = vscode.languages.registerFoldingRangeProvider(selector, provider);
-
-//   context.subscriptions.push(providerDisposable);
-// };
-//#endregion
-//#region 🕒 ⁡⁣⁣⁢handleEditCommand⁡ - Función principal del comando 'edit'
-/**
- * Función principal del comando `colorSuitComments.edit`. 
- * 
- * Esta función gestiona el flujo completo de edición de etiquetas de comentarios,
- * asegurando que el usuario tenga acceso a la configuración necesaria.
- *
- * @description Ejecuta las siguientes operaciones de forma secuencial:
- * 1. Verifica si el usuario ha creado etiquetas personalizadas en la extensión
- * 2. Si no existen etiquetas, establece la configuración por defecto automáticamente
- * 3. Abre el archivo settings.json para permitir la edición de etiquetas
- *
- * @async
- * @throws {Error} Mensaje de error si falla la operación
- * @returns {Promise<void>} Una promesa que se resuelve cuando todas las operaciones se completan exitosamente
- * 
- * @example
- * ```typescript
- * // Uso básico del comando
- * await handleEditCommand();
- * ```
- *
- * @see {@link hasDefinedTags} - Función que verifica etiquetas del usuario
- * @see {@link setDefaultTagsConfiguration} - Función que establece configuración por defecto
- * @see {@link openSettingsJson} - Función que abre el archivo de configuración
- * 
- * @version 1.0.0
- * @since 1.0.0
- * @author Walter Ezequiel Puig
- */
-export const handleEditCommand = (): void => {
-  openSettingsJson();
-};
-//#endregion
-
 let foldingProviderDisposable: vscode.Disposable | null = null;
-
 export const applyFoldingForBlocks = (
   document: vscode.TextDocument,
   resolvedTags: ResolvedTags,
@@ -649,3 +592,77 @@ export const applyFoldingForBlocks = (
   foldingProviderDisposable = vscode.languages.registerFoldingRangeProvider(selector, provider);
   context.subscriptions.push(foldingProviderDisposable);
 };
+//#endregion
+
+
+export async function collapseAll() {
+  const editor = vscode.window.activeTextEditor;
+  if (!editor) { return; }
+
+  const document = editor.document;
+  const tags = getTagNames();
+  const languageId = document.languageId;
+  const { headerPatterns, footerPatterns } = buildRegexPatternsForHeaderAndFooter(tags, languageId);
+  const headerMatchesData = getTagMatchData(document, headerPatterns, tags, 'header');
+  const footerMatchesData = getTagMatchData(document, footerPatterns, tags, 'footer');
+  const tagsConfig = getTagsConfiguration();
+  const tagsCommentData = buildResolvedDecorations([...headerMatchesData, ...footerMatchesData], tagsConfig);
+  const resolvedTags = resolveTagBlocks(tagsCommentData);
+
+  for (const block of resolvedTags.blocks) {
+    await vscode.commands.executeCommand('editor.fold', { selectionLines: [block.range.start.line] });
+  }
+}
+
+export async function expandAll() {
+  const editor = vscode.window.activeTextEditor;
+  if (!editor) { return; }
+
+  const document = editor.document;
+  const tags = getTagNames();
+  const languageId = document.languageId;
+  const { headerPatterns, footerPatterns } = buildRegexPatternsForHeaderAndFooter(tags, languageId);
+  const headerMatchesData = getTagMatchData(document, headerPatterns, tags, 'header');
+  const footerMatchesData = getTagMatchData(document, footerPatterns, tags, 'footer');
+  const tagsConfig = getTagsConfiguration();
+  const tagsCommentData = buildResolvedDecorations([...headerMatchesData, ...footerMatchesData], tagsConfig);
+  const resolvedTags = resolveTagBlocks(tagsCommentData);
+
+  for (const block of resolvedTags.blocks) {
+    await vscode.commands.executeCommand('editor.unfold', { selectionLines: [block.range.start.line] });
+  }
+}
+
+let isCollapsed = false; // Estado global para toggle
+
+export async function handleToggleCollapse() {
+  const editor = vscode.window.activeTextEditor;
+  if (!editor) { return; }
+
+  const document = editor.document;
+  const tags = getTagNames();
+  const languageId = document.languageId;
+  const { headerPatterns, footerPatterns } = buildRegexPatternsForHeaderAndFooter(tags, languageId);
+  const headerMatchesData = getTagMatchData(document, headerPatterns, tags, 'header');
+  const footerMatchesData = getTagMatchData(document, footerPatterns, tags, 'footer');
+  const tagsConfig = getTagsConfiguration();
+  const tagsCommentData = buildResolvedDecorations([...headerMatchesData, ...footerMatchesData], tagsConfig);
+  const resolvedTags = resolveTagBlocks(tagsCommentData);
+
+  if (!isCollapsed) {
+    // Colapsar todos los bloques
+    for (const block of resolvedTags.blocks) {
+      await vscode.commands.executeCommand('editor.fold', { selectionLines: [block.range.start.line] });
+    }
+  } else {
+    // Expandir todos los bloques
+    for (const block of resolvedTags.blocks) {
+      await vscode.commands.executeCommand('editor.unfold', { selectionLines: [block.range.start.line] });
+    }
+  }
+
+  isCollapsed = !isCollapsed; // Cambiar estado para próxima ejecución
+}
+
+
+//#endregion

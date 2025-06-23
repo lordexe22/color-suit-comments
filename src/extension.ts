@@ -6,6 +6,7 @@ import {
   decorateDocument,
   handleEditCommand,
   handleOnDidCloseTextDocument,
+  handleToggleCollapse,
   hasDefinedTags,
   setDefaultTagsConfiguration
 } from './utils';
@@ -57,12 +58,8 @@ export const activate = async (context: vscode.ExtensionContext) => {
   context.subscriptions.push(closeListener);
   //#endregion
 
-  context.subscriptions.push(
-    // vscode.commands.registerCommand('colorSuitComments.collapseAll', () => handleCollapseAll()),
-    // vscode.commands.registerCommand('colorSuitComments.expandAll', () => handleExpandAll()),
-    // vscode.commands.registerCommand('colorSuitComments.collapseByTag', () => handleCollapseByTag()),
-    // vscode.commands.registerCommand('colorSuitComments.expandByTag', () => handleExpandByTag())
-  );
+  const toggleCollapseCommand = vscode.commands.registerCommand('colorSuitComments.toggleCollapse', handleToggleCollapse);
+  context.subscriptions.push(toggleCollapseCommand);
 
 };
 //#endregion

@@ -22,32 +22,12 @@
   "contributes": {
     "commands": [
       {
-        "command": "colorSuitComments.collapseAll",
-        "title": "Collapse All Blocks"
-      },
-      {
-        "command": "colorSuitComments.expandAll",
-        "title": "Expand All Blocks"
-      },
-      {
-        "command": "colorSuitComments.collapseByTag",
-        "title": "Collapse Blocks by Tag"
-      },
-      {
-        "command": "colorSuitComments.expandByTag",
-        "title": "Expand Blocks by Tag"
-      },
-      {
-        "command": "colorSuitComments.options",
-        "title": "Options"
-      },
-      {
         "command": "colorSuitComments.edit",
-        "title": "Edit"
+        "title": "Edit tags"
       },
       {
         "command": "colorSuitComments.toggleCollapse",
-        "title": "Toggle Collapse"
+        "title": "Toggle Collapse All"
       }
     ],
     "submenus": [
@@ -70,18 +50,6 @@
         },
         { 
           "command": "colorSuitComments.toggleCollapse"
-        },
-        {
-          "command": "colorSuitComments.collapseAll"
-        },
-        {
-          "command": "colorSuitComments.expandAll"
-        },
-        {
-          "command": "colorSuitComments.collapseByTag"
-        },
-        {
-          "command": "colorSuitComments.expandByTag"
         }
       ]
     },
