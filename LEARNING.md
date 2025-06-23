@@ -624,7 +624,7 @@ export function activate(context: vscode.ExtensionContext) {
       }
 
       // Captura la configuración de la extensión, en este caso 'colorSuitComments'
-      const config = vscode.workspace.getTagsConfiguration('colorSuitComments');
+      const config = vscode.workspace.getWorkspaceConfiguration('colorSuitComments');
 
       // Captura las palabras claves almacenadas en el campo 'keywords', dentro de config
       const palabrasActuales = config.get<string[]>('keywords', []);

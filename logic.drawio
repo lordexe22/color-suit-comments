@@ -243,7 +243,7 @@
                 <mxCell id="70x6zd84YcVmvMTWWu5X-3" value="&lt;b&gt;3. Se capturan las coordenadas de los punteros al inicio y al final de los comentarios que incluyen etiquetas&lt;/b&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=default;strokeColor=#B09500;fontColor=#000000;align=left;shadow=0;" parent="qwGDIS2gza1L38uF98xf-1" vertex="1">
                     <mxGeometry x="200" y="385" width="270" height="60" as="geometry"/>
                 </mxCell>
-                <mxCell id="70x6zd84YcVmvMTWWu5X-6" value="&lt;b&gt;getTagsConfig()&lt;/b&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#e3c800;strokeColor=#B09500;fontColor=#000000;" parent="qwGDIS2gza1L38uF98xf-1" vertex="1">
+                <mxCell id="70x6zd84YcVmvMTWWu5X-6" value="&lt;b&gt;getTagsConfiguration()&lt;/b&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#e3c800;strokeColor=#B09500;fontColor=#000000;" parent="qwGDIS2gza1L38uF98xf-1" vertex="1">
                     <mxGeometry x="520" y="485" width="120" height="40" as="geometry"/>
                 </mxCell>
                 <mxCell id="70x6zd84YcVmvMTWWu5X-7" style="edgeStyle=elbowEdgeStyle;shape=connector;rounded=1;html=1;strokeColor=#999999;strokeWidth=2;align=center;verticalAlign=middle;fontFamily=Helvetica;fontSize=11;fontColor=default;labelBackgroundColor=default;endArrow=classic;" parent="qwGDIS2gza1L38uF98xf-1" source="70x6zd84YcVmvMTWWu5X-8" target="70x6zd84YcVmvMTWWu5X-6" edge="1">

@@ -20,7 +20,74 @@ import {
 } from './types';
 //#endregion
 //#region ⁡⁢⁣⁢Funciones⁡
-//#region ✅ ⁡⁣⁣⁢getTagsConfiguration⁡ - Obtiene la configuración global del workspace
+//#region ✅ ⁡⁣⁣⁢clearDecorationsForDocument⁡ - Elimina decoradores activos de un documento antes de aplicar nuevos.
+/**
+ * Elimina todas las decoraciones visuales activas asociadas a un documento específico.
+ * 
+ * Este método limpia cualquier decorador aplicado previamente sobre el documento en `activeDecorationsMap`,
+ * lo que permite aplicar nuevas decoraciones sin superposiciones, residuos o conflictos visuales.
+ * 
+ * Es útil tanto cuando se actualiza el contenido del documento como cuando se cierra el archivo.
+ *
+ * @param {vscode.TextDocument} document - El documento del cual se deben eliminar las decoraciones activas.
+ * @returns {void}
+ * @example
+ * const listener = vscode.workspace.onDidCloseTextDocument(clearDecorationsForDocument);
+ * context.subscriptions.push(listener);
+ * @version 1.0.0
+ * @since 1.0.0
+ * @author Walter Ezequiel Puig
+ * 
+ */
+export const clearDecorationsForDocument = (document: vscode.TextDocument) => {
+  const key = document.uri.toString();
+  const activeDecorations = activeDecorationsMap.get(key);
+  
+  if (activeDecorations && activeDecorations.length > 0) {
+    for (const decoration of activeDecorations) {
+      decoration.dispose();
+    }
+    activeDecorationsMap.delete(key);
+  }
+};
+//#endregion
+//#region ✅ ⁡⁣⁣⁢getTagsConfiguration⁡ - Obtiene la configuración completa de las etiquetas desde settings.json
+/**
+ * Obtiene la configuración de etiquetas definida por el usuario en el archivo
+ * `settings.json`, bajo la clave personalizada del workspace (`colorSuitComments.tags`).
+ * 
+ * Cada entrada debe contener al menos:
+ * - `tag` (string): identificador de la etiqueta personalizada (por ejemplo, "error").
+ * 
+ * Opcionalmente puede contener:
+ * - `color` (string): color del texto de la etiqueta.
+ * - `backgroundColor` (string): color de fondo para la línea que contiene la etiqueta.
+ * 
+ * Entradas incompletas o malformadas serán ignoradas.
+ * 
+ * @returns {TagConfig[]} Un arreglo de configuraciones válidas para aplicar decoradores.
+ *
+ * @example
+ * const configs = getTagsConfiguration();
+ * configs.forEach(cfg => {
+ *   console.log(cfg.tag, cfg.color, cfg.backgroundColor);
+ * });
+ * 
+ * @version 1.0.0
+ * @since 1.0.0
+ * @author Walter Ezequiel Puig
+ */
+export const getTagsConfiguration = (): TagConfig[] => {
+  const config = vscode.workspace.getConfiguration();
+  const rawConfig = config.get<any[]>(CONFIG_KEY, []);
+
+  const isValid = (entry: any): entry is TagConfig =>
+    typeof entry?.tag === 'string';
+
+  return rawConfig.filter(isValid);
+};
+//#endregion
+//#region ✅ ⁡⁣⁣⁢getWorkspaceConfiguration⁡ - Obtiene la configuración global del workspace
 /** 
  * Retorna el objeto de configuración activo de VS Code.
  *
@@ -36,7 +103,7 @@ import {
  * @since 1.0.0
  * @author Walter Ezequiel Puig
  */
-export const getTagsConfiguration = (): vscode.WorkspaceConfiguration => {
+export const getWorkspaceConfiguration = (): vscode.WorkspaceConfiguration => {
   return vscode.workspace.getConfiguration();
 };
 //#endregion
@@ -57,51 +124,34 @@ export const getTagsConfiguration = (): vscode.WorkspaceConfiguration => {
  * @author Walter Ezequiel Puig
  */
 export const getTagNames = (): string[] => {
-  const config = getTagsConfiguration();
+  const config = getWorkspaceConfiguration();
   const tags = config.get<TagConfig[]>(CONFIG_KEY, []);
   const tagNames = tags.map(tag => tag.tag).filter(Boolean);
   return tagNames;
 };
 //#endregion
-//#region ✅ ⁡⁣⁣⁢handleEditCommand⁡ - Función principal del comando 'edit'
+//#region ✅ ⁡⁣⁣⁢handleOnDidCloseTextDocument⁡ - Maneja el evento que se dispara al cerrar un documento en el editor.
 /**
- * Función principal del comando `colorSuitComments.edit`. 
- * 
- * Esta función gestiona el flujo completo de edición de etiquetas de comentarios,
- * asegurando que el usuario tenga acceso a la configuración necesaria.
+ * Maneja el evento que se dispara al cerrar un documento en el editor.
+ * Elimina todas las decoraciones asociadas al documento cerrado y limpia la referencia
+ * en el mapa activo para liberar memoria y evitar escuchas innecesarias.
  *
- * @description Ejecuta las siguientes operaciones de forma secuencial:
- * 1. Verifica si el usuario ha creado etiquetas personalizadas en la extensión
- * 2. Si no existen etiquetas, establece la configuración por defecto automáticamente
- * 3. Abre el archivo settings.json para permitir la edición de etiquetas
- *
- * @async
- * @throws {Error} Mensaje de error si falla la operación
- * @returns {Promise<void>} Una promesa que se resuelve cuando todas las operaciones se completan exitosamente
- * 
+ * @param {vscode.TextDocument} document - El documento que ha sido cerrado.
+ * @returns {void}
  * @example
- * ```typescript
- * // Uso básico del comando
- * await handleEditCommand();
- * ```
- *
- * @see {@link hasUserDefinedTags} - Función que verifica etiquetas del usuario
- * @see {@link setDefaultTagsConfiguration} - Función que establece configuración por defecto
- * @see {@link openSettingsJson} - Función que abre el archivo de configuración
- * 
+ * const closeListener = vscode.workspace.onDidCloseTextDocument(handleOnDidCloseTextDocument);
+ * context.subscriptions.push(closeListener);
  * @version 1.0.0
  * @since 1.0.0
  * @author Walter Ezequiel Puig
  */
-export const handleEditCommand = async(): Promise<void> => {
-  try {
-    if (!hasUserDefinedTags()) {
-      await setDefaultTagsConfiguration();
-    }
-    openSettingsJson();
-  } catch (error) {
-    console.error('handleEditCommand -> Error al operar el comando colorSuitComments.edit', error);
-  }
+export const handleOnDidCloseTextDocument = (document: vscode.TextDocument) :void => {
+    const docUri = document.uri.toString();
+    const decorations = activeDecorationsMap.get(docUri);
+    if (decorations) {
+      decorations.forEach(d => d.dispose());
+      activeDecorationsMap.delete(docUri);
+    }  
 };
 //#endregion
 //#region ✅ ⁡⁣⁣⁢openSettingsJson⁡ -  Abre el archivo global de configuración (settings.json)
@@ -116,11 +166,7 @@ export const handleEditCommand = async(): Promise<void> => {
  * @author Walter Ezequiel Puig
  */
 export const openSettingsJson = (): void => {
-  try {
-    vscode.commands.executeCommand('workbench.action.openSettingsJson');
-  } catch (error) {
-    console.error('openSettingsJson() - Error abriendo settings.json', error);
-  }
+  vscode.commands.executeCommand('workbench.action.openSettingsJson');
 };
 //#endregion
 //#endregion
@@ -157,51 +203,6 @@ export const buildRegexPatterns = (tags: string[], languageId: string): { header
   return { headerPatterns, footerPatterns };
 };
 //#endregion
-//#region 🕒 ⁡⁣⁣⁢handleOnDidCloseTextDocument⁡ - Maneja el evento que se dispara al cerrar un documento en el editor.
-/**
- * Maneja el evento que se dispara al cerrar un documento en el editor.
- * Elimina todas las decoraciones asociadas al documento cerrado y limpia la referencia
- * en el mapa activo para liberar memoria y evitar escuchas innecesarias.
- *
- * @param {vscode.TextDocument} document - El documento que ha sido cerrado.
- * @returns {void}
- * @version 1.0.0
- * @since 1.0.0
- * @author Walter Ezequiel Puig
- * @example
- * const closeListener = vscode.workspace.onDidCloseTextDocument(handleOnDidCloseTextDocument);
- * context.subscriptions.push(closeListener);
- */
-export const handleOnDidCloseTextDocument = (document: vscode.TextDocument) :void => {
-    const docUri = document.uri.toString();
-    const decorations = activeDecorationsMap.get(docUri);
-    if (decorations) {
-      decorations.forEach(d => d.dispose());
-      activeDecorationsMap.delete(docUri);
-    }  
-};
-//#endregion
-//#region 🕒 ⁡⁣⁣⁢hasUserDefinedTags⁡ -  Verifica si el usuario ya definió algun custom tag dentro de settings.json
-/** 
- * Verifica si el usuario ha definido una configuración personalizada para `colorSuitComments.tags`
- * en alguno de los niveles disponibles (global, workspace o carpeta).
- *  
- * @returns {boolean}
- * @version 1.0.0
- * @since 1.0.0
- * @author Walter Ezequiel Puig
- */
-export const hasUserDefinedTags = (): boolean => {
-  const config = getTagsConfiguration();
-  const userValue = config.inspect(CONFIG_KEY);
-
-  return Boolean(
-    userValue?.globalValue ||
-    userValue?.workspaceValue ||
-    userValue?.workspaceFolderValue
-  );
-};
-//#endregion
 //#region 🕒 ⁡⁣⁣⁢setDefaultTagsConfiguration⁡ -  Establece los valores por defecto en el settings.json global
 /** 
  * Establece los valores por defecto para los comentarios en el archivo settings.json global.
@@ -217,7 +218,7 @@ export const hasUserDefinedTags = (): boolean => {
  * await setDefaultTagsConfiguration();
  */
 export const setDefaultTagsConfiguration = async (): Promise<void> => {
-  const config = getTagsConfiguration();
+  const config = getWorkspaceConfiguration();
   await config.update(CONFIG_KEY, DEFAULT_TAGS, vscode.ConfigurationTarget.Global);
 };
 //#endregion
@@ -303,43 +304,6 @@ export const getTagMatchData = (
 
   return matches;
 };
-//#endregion
-//#region 🕒 ⁡⁣⁣⁢getTagsConfig⁡ - Obtiene la configuración completa de las etiquetas desde settings.json
-/**
- * Obtiene la configuración de etiquetas definida por el usuario en el archivo
- * `settings.json`, bajo la clave personalizada del workspace (`colorSuitComments.tags`).
- * 
- * Cada entrada debe contener al menos:
- * - `tag` (string): identificador de la etiqueta personalizada (por ejemplo, "error").
- * 
- * Opcionalmente puede contener:
- * - `color` (string): color del texto de la etiqueta.
- * - `backgroundColor` (string): color de fondo para la línea que contiene la etiqueta.
- * 
- * Entradas incompletas o malformadas serán ignoradas.
- * 
- * @returns {TagConfig[]} Un arreglo de configuraciones válidas para aplicar decoradores.
- *
- * @example
- * const configs = getTagsConfig();
- * configs.forEach(cfg => {
- *   console.log(cfg.tag, cfg.color, cfg.backgroundColor);
- * });
- * 
- * @version 1.0.0
- * @since 1.0.0
- * @author Walter Ezequiel Puig
- */
-export const getTagsConfig = (): TagConfig[] => {
-  const config = vscode.workspace.getConfiguration();
-  const rawConfig = config.get<any[]>(CONFIG_KEY, []);
-
-  const isValid = (entry: any): entry is TagConfig =>
-    typeof entry?.tag === 'string';
-
-  return rawConfig.filter(isValid);
-};
-
 //#endregion
 //#region 🕒 ⁡⁣⁣⁢buildResolvedDecorations⁡ - Une coincidencias con configuraciones
 /**
@@ -465,7 +429,7 @@ export const decorateDocument = (context: vscode.ExtensionContext, document: vsc
   const footerMatchesData = getTagMatchData(document, footerPatterns, tags, 'footer');
   //#endregion
   //#region ✅4. Captura de la configuración de las etiquetas -> ⁡⁣⁢⁣tagsConfig = { tag, color?, backgroundColor? }⁡
-  const tagsConfig = getTagsConfig();
+  const tagsConfig = getTagsConfiguration();
   //#endregion  
   //#region ✅5. Se combinan los comentarios con sus respectivos decoradores -> ⁡⁣⁢⁣tagsCommentData = {tag, color?, backgroundColor?, type, vscode.range}⁡
   const tagsCommentData = buildResolvedDecorations([...headerMatchesData,...footerMatchesData], tagsConfig);
@@ -590,14 +554,59 @@ export const applyFoldingForBlocks = (
 
   context.subscriptions.push(providerDisposable);
 };
-export const clearDecorationsForDocument = (document: vscode.TextDocument) => {
-  const key = document.uri.toString();
-  const activeDecorations = activeDecorationsMap.get(key);
-  
-  if (activeDecorations && activeDecorations.length > 0) {
-    for (const decoration of activeDecorations) {
-      decoration.dispose();
-    }
-    activeDecorationsMap.delete(key);
-  }
+
+//#region 🕒 ⁡⁣⁣⁢handleEditCommand⁡ - Función principal del comando 'edit'
+/**
+ * Función principal del comando `colorSuitComments.edit`. 
+ * 
+ * Esta función gestiona el flujo completo de edición de etiquetas de comentarios,
+ * asegurando que el usuario tenga acceso a la configuración necesaria.
+ *
+ * @description Ejecuta las siguientes operaciones de forma secuencial:
+ * 1. Verifica si el usuario ha creado etiquetas personalizadas en la extensión
+ * 2. Si no existen etiquetas, establece la configuración por defecto automáticamente
+ * 3. Abre el archivo settings.json para permitir la edición de etiquetas
+ *
+ * @async
+ * @throws {Error} Mensaje de error si falla la operación
+ * @returns {Promise<void>} Una promesa que se resuelve cuando todas las operaciones se completan exitosamente
+ * 
+ * @example
+ * ```typescript
+ * // Uso básico del comando
+ * await handleEditCommand();
+ * ```
+ *
+ * @see {@link hasUserDefinedTags} - Función que verifica etiquetas del usuario
+ * @see {@link setDefaultTagsConfiguration} - Función que establece configuración por defecto
+ * @see {@link openSettingsJson} - Función que abre el archivo de configuración
+ * 
+ * @version 1.0.0
+ * @since 1.0.0
+ * @author Walter Ezequiel Puig
+ */
+export const handleEditCommand = (): void => {
+  openSettingsJson();
 };
+//#endregion
+//#region 🕒 ⁡⁣⁣⁢hasUserDefinedTags⁡ -  Verifica si el usuario ya definió algun custom tag dentro de settings.json
+/** 
+ * Verifica si el usuario ha definido una configuración personalizada para `colorSuitComments.tags`
+ * en alguno de los niveles disponibles (global, workspace o carpeta).
+ *  
+ * @returns {boolean}
+ * @version 1.0.0
+ * @since 1.0.0
+ * @author Walter Ezequiel Puig
+ */
+export const hasUserDefinedTags = (): boolean => {
+  const config = getWorkspaceConfiguration();
+  const userValue = config.inspect(CONFIG_KEY);
+
+  return Boolean(
+    userValue?.globalValue ||
+    userValue?.workspaceValue ||
+    userValue?.workspaceFolderValue
+  );
+};
+//#endregion
