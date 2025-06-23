@@ -154,6 +154,27 @@ export const handleOnDidCloseTextDocument = (document: vscode.TextDocument) :voi
     }  
 };
 //#endregion
+//#region ✅ ⁡⁣⁣⁢hasDefinedTags⁡ -  Verifica si existen etiquetas dentro de settings.json
+/** 
+ * Verifica la existencia de etiquetas dentro de `colorSuitComments.tags` en `settings.json`
+ * en alguno de los niveles disponibles (global, workspace o carpeta).
+ *  
+ * @returns {boolean}
+ * @version 1.0.0
+ * @since 1.0.0
+ * @author Walter Ezequiel Puig
+ */
+export const hasDefinedTags = (): boolean => {
+  const config = getWorkspaceConfiguration();
+  const userValue = config.inspect(CONFIG_KEY);
+
+  return Boolean(
+    userValue?.globalValue ||
+    userValue?.workspaceValue ||
+    userValue?.workspaceFolderValue
+  );
+};
+//#endregion
 //#region ✅ ⁡⁣⁣⁢openSettingsJson⁡ -  Abre el archivo global de configuración (settings.json)
 /** 
  * Abre el archivo de configuración global `settings.json`
@@ -167,6 +188,25 @@ export const handleOnDidCloseTextDocument = (document: vscode.TextDocument) :voi
  */
 export const openSettingsJson = (): void => {
   vscode.commands.executeCommand('workbench.action.openSettingsJson');
+};
+//#endregion
+//#region ✅ ⁡⁣⁣⁢setDefaultTagsConfiguration⁡ -  Establece los valores por defecto en el settings.json global
+/** 
+ * Establece los valores por defecto para los comentarios en el archivo `settings.json` global.
+ * Utiliza la API de VSCode para actualizar la configuración persistente del usuario.
+ * Puede generar un pequeño retardo debido a la escritura asincrónica del archivo.
+ * 
+ * @async
+ * @returns {Promise<void>}
+ * @version 1.0.0
+ * @since 1.0.0
+ * @author Walter Ezequiel Puig
+ * @example
+ * await setDefaultTagsConfiguration();
+ */
+export const setDefaultTagsConfiguration = async (): Promise<void> => {
+  const config = getWorkspaceConfiguration();
+  await config.update(CONFIG_KEY, DEFAULT_TAGS, vscode.ConfigurationTarget.Global);
 };
 //#endregion
 //#endregion
@@ -203,25 +243,6 @@ export const buildRegexPatterns = (tags: string[], languageId: string): { header
   return { headerPatterns, footerPatterns };
 };
 //#endregion
-//#region 🕒 ⁡⁣⁣⁢setDefaultTagsConfiguration⁡ -  Establece los valores por defecto en el settings.json global
-/** 
- * Establece los valores por defecto para los comentarios en el archivo settings.json global.
- * Utiliza la API de VS Code para actualizar la configuración persistente del usuario.
- * Puede generar un pequeño retardo debido a la escritura asincrónica del archivo.
- * 
- * @async
- * @returns {Promise<void>}
- * @version 1.0.0
- * @since 1.0.0
- * @author Walter Ezequiel Puig
- * @example
- * await setDefaultTagsConfiguration();
- */
-export const setDefaultTagsConfiguration = async (): Promise<void> => {
-  const config = getWorkspaceConfiguration();
-  await config.update(CONFIG_KEY, DEFAULT_TAGS, vscode.ConfigurationTarget.Global);
-};
-//#endregion
 //#region 🕒 ⁡⁣⁣⁢getRegexPatternsForLanguage⁡ - Retorna un arreglo de regex base para header o footer según el tipo
 /**
  * Retorna un arreglo con expresiones regulares para un identificar los patrones de apertura y cierre de los bloques colapsables.
@@ -248,7 +269,7 @@ export const getRegexPatternsForLanguage = (languageId: string, type: 'header' |
   }
 };
 //#endregion
-//#region 🕒 ⁡⁣⁣⁢getTagMatcheData⁡ - Retorna coincidencias con su tag, tipo y rango
+//#region 🕒 ⁡⁣⁣⁢getTagMatchData⁡ - Retorna coincidencias con su tag, tipo y rango
 /**
  * Busca coincidencias entre una lista de expresiones regulares y un documento de VSCode,
  * y devuelve un arreglo de objetos `TagMatch`, que contienen el rango de la coincidencia,
@@ -455,6 +476,7 @@ export const decorateDocument = (context: vscode.ExtensionContext, document: vsc
   //#endregion
 };
 //#endregion
+//#region 🕒 ⁡⁣⁣⁢applyDecorationsForBlockContent⁡
 export const applyDecorationsForBlockContent = (
   editor:vscode.TextEditor, 
   tagsConfig:TagConfig[],
@@ -491,6 +513,8 @@ export const applyDecorationsForBlockContent = (
     activeDecorationsMap.get(key)?.push(backgroundDecorator);
   }
 };
+//#endregion
+//#region 🕒 ⁡⁣⁣⁢applyDecorationsForTagComments⁡
 export const applyDecorationsForTagComments = (
   editor: vscode.TextEditor,
   tagsCommentData: ResolvedTagDecoration[]
@@ -529,32 +553,34 @@ export const applyDecorationsForTagComments = (
     
   }
 };
-export const applyFoldingForBlocks = (
-  document: vscode.TextDocument,
-  resolvedTags: ResolvedTags,
-  context: vscode.ExtensionContext
-) => {
-  const provider: vscode.FoldingRangeProvider = {
-    provideFoldingRanges(doc, _, __) {
-      if (doc.uri.toString() !== document.uri.toString()) {return [];}
+//#endregion
+//#region 🕒 ⁡⁣⁣⁢applyFoldingForBlocks⁡
+// export const applyFoldingForBlocks = (
+//   document: vscode.TextDocument,
+//   resolvedTags: ResolvedTags,
+//   context: vscode.ExtensionContext
+// ) => {
+//   const provider: vscode.FoldingRangeProvider = {
+//     provideFoldingRanges(doc, _, __) {
+//       if (doc.uri.toString() !== document.uri.toString()) {return [];}
 
-      return resolvedTags.blocks.map(block => {
-        return new vscode.FoldingRange(
-          block.range.start.line,
-          block.range.end.line,
-          vscode.FoldingRangeKind.Region
-        );
-      });
-    }
-  };
+//       return resolvedTags.blocks.map(block => {
+//         return new vscode.FoldingRange(
+//           block.range.start.line,
+//           block.range.end.line,
+//           vscode.FoldingRangeKind.Region
+//         );
+//       });
+//     }
+//   };
 
-  const selector: vscode.DocumentSelector = { language: document.languageId, scheme: 'file' };
+//   const selector: vscode.DocumentSelector = { language: document.languageId, scheme: 'file' };
 
-  const providerDisposable = vscode.languages.registerFoldingRangeProvider(selector, provider);
+//   const providerDisposable = vscode.languages.registerFoldingRangeProvider(selector, provider);
 
-  context.subscriptions.push(providerDisposable);
-};
-
+//   context.subscriptions.push(providerDisposable);
+// };
+//#endregion
 //#region 🕒 ⁡⁣⁣⁢handleEditCommand⁡ - Función principal del comando 'edit'
 /**
  * Función principal del comando `colorSuitComments.edit`. 
@@ -577,7 +603,7 @@ export const applyFoldingForBlocks = (
  * await handleEditCommand();
  * ```
  *
- * @see {@link hasUserDefinedTags} - Función que verifica etiquetas del usuario
+ * @see {@link hasDefinedTags} - Función que verifica etiquetas del usuario
  * @see {@link setDefaultTagsConfiguration} - Función que establece configuración por defecto
  * @see {@link openSettingsJson} - Función que abre el archivo de configuración
  * 
@@ -589,24 +615,37 @@ export const handleEditCommand = (): void => {
   openSettingsJson();
 };
 //#endregion
-//#region 🕒 ⁡⁣⁣⁢hasUserDefinedTags⁡ -  Verifica si el usuario ya definió algun custom tag dentro de settings.json
-/** 
- * Verifica si el usuario ha definido una configuración personalizada para `colorSuitComments.tags`
- * en alguno de los niveles disponibles (global, workspace o carpeta).
- *  
- * @returns {boolean}
- * @version 1.0.0
- * @since 1.0.0
- * @author Walter Ezequiel Puig
- */
-export const hasUserDefinedTags = (): boolean => {
-  const config = getWorkspaceConfiguration();
-  const userValue = config.inspect(CONFIG_KEY);
 
-  return Boolean(
-    userValue?.globalValue ||
-    userValue?.workspaceValue ||
-    userValue?.workspaceFolderValue
-  );
+let foldingProviderDisposable: vscode.Disposable | null = null;
+
+export const applyFoldingForBlocks = (
+  document: vscode.TextDocument,
+  resolvedTags: ResolvedTags,
+  context: vscode.ExtensionContext
+) => {
+  if (foldingProviderDisposable) {
+    foldingProviderDisposable.dispose();
+  }
+
+  const provider: vscode.FoldingRangeProvider = {
+    provideFoldingRanges(doc, _, __) {
+      if (doc.uri.toString() !== document.uri.toString()) { return []; }
+
+      return resolvedTags.blocks.map(block => {
+        return new vscode.FoldingRange(
+          block.range.start.line,
+          block.range.end.line,
+          vscode.FoldingRangeKind.Region
+        );
+      });
+    }
+  };
+
+  const selector: vscode.DocumentSelector = {
+    language: document.languageId,
+    scheme: 'file'
+  };
+
+  foldingProviderDisposable = vscode.languages.registerFoldingRangeProvider(selector, provider);
+  context.subscriptions.push(foldingProviderDisposable);
 };
-//#endregion

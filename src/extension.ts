@@ -6,7 +6,7 @@ import {
   decorateDocument,
   handleEditCommand,
   handleOnDidCloseTextDocument,
-  hasUserDefinedTags,
+  hasDefinedTags,
   setDefaultTagsConfiguration
 } from './utils';
 //#endregion
@@ -15,7 +15,7 @@ import {
 //#region ⁡⁣⁣⁢⭐activate⁡ - Activación de la extensión
 export const activate = async (context: vscode.ExtensionContext) => {
   //#region ✅1. Si no existe, crea dentro de settings.json un objeto con la configuración inicial de las etiquetas de esta extensión.
-  if (!hasUserDefinedTags()) {
+  if (!hasDefinedTags()) {
     await setDefaultTagsConfiguration();
   }
   //#endregion
