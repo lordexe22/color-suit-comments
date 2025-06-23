@@ -2,6 +2,7 @@
 
 //#region ⁡⁢⁣⁢Importaciones⁡
 import * as vscode from 'vscode';
+import { registerDynamicSnippets } from './dynamicSnippets';
 import { 
   decorateDocument,
   handleEditCommand,
@@ -57,9 +58,14 @@ export const activate = async (context: vscode.ExtensionContext) => {
   const closeListener = vscode.workspace.onDidCloseTextDocument(handleOnDidCloseTextDocument);
   context.subscriptions.push(closeListener);
   //#endregion
-
+  //#region ✅8. Se registra el comando para colapsar o expandir los bloques colapsables.
   const toggleCollapseCommand = vscode.commands.registerCommand('colorSuitComments.toggleCollapse', handleToggleCollapse);
   context.subscriptions.push(toggleCollapseCommand);
+  //#endregion
+
+  //#region ✅9. Se crean dinamicamente los snippets con las etiquetas existentes
+  registerDynamicSnippets(context);
+  //#endregion
 
 };
 //#endregion
