@@ -1,8 +1,9 @@
 {
   "name": "color-suit-comments",
   "displayName": "Color Suit Comments",
-  "description": "Allows you to add custom styles to comments in order to make the code easier to read.",
+  "description": "Allows you to add custom styles and collapsible blocks to code comments using configurable tags to improve code readability.",
   "version": "0.0.1",
+  "publisher": "",
   "engines": {
     "vscode": "^1.100.0"
   },
@@ -34,7 +35,7 @@
       {
         "id": "colorSuitComments.options",
         "label": "Color Suit Comments Options",
-        "icon": "$(heart-filled)"
+        "icon": "$(symbol-color)"
       }
     ],
     "menus": {
@@ -85,22 +86,22 @@
             {
               "tag": "error",
               "color": "#ff4d4f",
-              "backgroundColor": "#3b2525"
+              "backgroundColor": "#ff4d4f10"
             },
             {
               "tag": "warning",
               "color": "#ffff4f",
-              "backgroundColor": "#3b3b25"
+              "backgroundColor": "#ffff4f10"
             },
             {
               "tag": "todo",
               "color": "#ffa04f",
-              "backgroundColor": "#3b2f25"
+              "backgroundColor": "#ffa04f10"
             },
             {
               "tag": "info",
               "color": "#4080f0",
-              "backgroundColor": "#232b39"
+              "backgroundColor": "#4080f010"
             }
           ],
           "description": "Array of tags with custom styling for Color Suit Comments"
@@ -134,5 +135,6 @@
     "typescript": "^5.8.3",
     "@vscode/test-cli": "^0.0.10",
     "@vscode/test-electron": "^2.5.2"
-  }
+  },
+  "license":"LICENSE.txt"
 }

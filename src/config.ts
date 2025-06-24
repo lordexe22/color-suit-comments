@@ -11,22 +11,22 @@ export const DEFAULT_TAGS = [
   {
     tag: 'error',
     color: '#ff4d4f',
-    backgroundColor: '#3b2525'
+    backgroundColor: '#ff4d4f10'
   },
   {
     tag: 'warning',
     color: '#ffff4f',
-    backgroundColor: '#3b3b25'
+    backgroundColor: '#ffff4f10'
   },
   {
     tag: 'todo',
     color: '#ffa04f',
-    backgroundColor: '#3b2f25'
+    backgroundColor: '#ffa04f10'
   },
   {
     tag: 'info',
     color: '#4080f0',
-    backgroundColor: '#232b39'
+    backgroundColor: '#4080f010'
   }
 ];
 //#endregion

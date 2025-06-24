@@ -1,31 +1,63 @@
 # color-suit-comments README
 
-This is the README for your extension "color-suit-comments". After writing up a brief description, we recommend including the following sections.
+Color Suit Comments is a Visual Studio Code extension that allows you to add custom styles to code comments using configurable tags.
+
+You can also create collapsible blocks by using matching opening and closing tags, making it easier to structure and navigate large files.
+
+The extension works in real time, supports multi-file visualization, and can be fully customized via the `settings.json` file.
+
+Currently compatible with JavaScript and TypeScript.
 
 ## Features
 
-Describe specific features of your extension including screenshots of your extension in action. Image paths are relative to this README file.
+- Apply **custom styles** to code comments using configurable tags (text color and background). The available default tags are:
 
-For example if there is an image subfolder under your extension project workspace:
+  <div style="color:#ff4d4f; background-color:#ff4d4f10">//#error</div>
+  <div style="color:#ff4d4f; background-color:#ff4d4f10; margin-bottom:5px;">//#end-error</div>
+  <div style="color:#ffff4f; background-color:#ffff4f10">//#warning</div>
+  <div style="color:#ffff4f; background-color:#ffff4f10;  margin-bottom:5px;">//#end-warning</div>
+  <div style="color:#ffa04f; background-color:#ffa04f10">//#todo</div>
+  <div style="color:#ffa04f; background-color:#ffa04f10;  margin-bottom:5px;">//#end-todo</div>
+  <div style="color:#4080f0; background-color:#4080f010">//#info</div>
+  <div style="color:#4080f0; background-color:#4080f010">//#end-info</div>
 
-\!\[feature X\]\(images/feature-x.png\)
+- Define **collapsible blocks** using matching opening and closing tags.
 
-> Tip: Many popular extensions utilize animations. This is an excellent way to show off your extension! We recommend short, focused animations that are easy to follow.
+  ![Presentation example](media/presentation-example.png)
+
+
+- Easily access and edit the configuration via a dedicated **Edit Settings** menu option.
+- Ships with a default set of tags, but you can **add, remove, or edit** them via `settings.json`.
+
+  ![Opening settings.json](media/open-settings.gif)
+
+- 🔀 Use the **Toggle Blocks** command to collapse or expand all tag-defined blocks with one click.
+
+  ![Toggle collapse block example](media/colapse-blocks.gif)
+
+- 🔁 Automatically updates **in real time** as you type.
+
+  ![Decorate in real time](media/real-time-example.gif)
+
+- 📁 Works across **multiple open files** simultaneously.
 
 ## Requirements
 
-If you have any requirements or dependencies, add a section describing those and how to install and configure them.
+There are no additional requirements or dependencies needed to use this extension. It works out of the box.
 
 ## Extension Settings
 
-Include if your extension adds any VS Code settings through the `contributes.configuration` extension point.
 
-For example:
+This extension contributes the following setting:
 
-This extension contributes the following settings:
+- `colorSuitComments.tags`:  
+  An array of tag definitions used to apply custom styles to comments.  
+  Each tag can include:
+  - `tag` (required): The name of the tag to match in comments.
+  - `color`: The text color to apply.
+  - `backgroundColor`: The background color for the block (if it becomes collapsible).
 
-* `myExtension.enable`: Enable/disable this extension.
-* `myExtension.thing`: Set to `blah` to do something.
+You can edit these settings directly via the command **"Edit tags"**, which opens your `settings.json` file.
 
 ## Known Issues
 

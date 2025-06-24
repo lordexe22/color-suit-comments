@@ -27,8 +27,8 @@ import {
  * @param tags - Lista con las etiquetas de los bloques colapsables.
  * @param type - ID del lenguaje del documento (por ejemplo: 'javascript', 'typescript', etc).
  * @returns {{ headerPatterns: RegExp[], footerPatterns: RegExp[] }} Objeto con listas de expresiones regulares.
- * @version 1.0.0
- * @since 1.0.0
+ * @version 0.0.1
+ * @since 0.0.1
  * @author Walter Ezequiel Puig
  */
 export const buildRegexPatternsForHeaderAndFooter = (tags: string[], languageId: string): { headerPatterns: RegExp[], footerPatterns: RegExp[] } => {
@@ -69,8 +69,8 @@ export const buildRegexPatternsForHeaderAndFooter = (tags: string[], languageId:
  * @example
  * const listener = vscode.workspace.onDidCloseTextDocument(clearDecorationsForDocument);
  * context.subscriptions.push(listener);
- * @version 1.0.0
- * @since 1.0.0
+ * @version 0.0.1
+ * @since 0.0.1
  * @author Walter Ezequiel Puig
  * 
  */
@@ -108,8 +108,8 @@ export const clearDecorationsForDocument = (document: vscode.TextDocument) => {
  *   console.log(cfg.tag, cfg.color, cfg.backgroundColor);
  * });
  * 
- * @version 1.0.0
- * @since 1.0.0
+ * @version 0.0.1
+ * @since 0.0.1
  * @author Walter Ezequiel Puig
  */
 export const getTagsConfiguration = (): TagConfig[] => {
@@ -134,8 +134,8 @@ export const getTagsConfiguration = (): TagConfig[] => {
  * El valor más específico definido prevalece. Para ver todos los niveles, usar `.inspect(clave)`.
  *
  * @returns {vscode.WorkspaceConfiguration}
- * @version 1.0.0
- * @since 1.0.0
+ * @version 0.0.1
+ * @since 0.0.1
  * @author Walter Ezequiel Puig
  */
 export const getWorkspaceConfiguration = (): vscode.WorkspaceConfiguration => {
@@ -154,8 +154,8 @@ export const getWorkspaceConfiguration = (): vscode.WorkspaceConfiguration => {
  * 3. Global (~/.config/Code/User/settings.json)
  * 
  * @returns {string[]} Arreglo con los nombres de las etiquetas de la extensión
- * @version 1.0.0
- * @since 1.0.0
+ * @version 0.0.1
+ * @since 0.0.1
  * @author Walter Ezequiel Puig
  */
 export const getTagNames = (): string[] => {
@@ -180,8 +180,8 @@ export const getTagNames = (): string[] => {
  * context.subscriptions.push(editCommand);
  * ```
  *
- * @version 1.0.0
- * @since 1.0.0
+ * @version 0.0.1
+ * @since 0.0.1
  * @author Walter Ezequiel Puig
  */
 export const handleEditCommand = (): void => {
@@ -199,8 +199,8 @@ export const handleEditCommand = (): void => {
  * @example
  * const closeListener = vscode.workspace.onDidCloseTextDocument(handleOnDidCloseTextDocument);
  * context.subscriptions.push(closeListener);
- * @version 1.0.0
- * @since 1.0.0
+ * @version 0.0.1
+ * @since 0.0.1
  * @author Walter Ezequiel Puig
  */
 export const handleOnDidCloseTextDocument = (document: vscode.TextDocument) :void => {
@@ -218,8 +218,8 @@ export const handleOnDidCloseTextDocument = (document: vscode.TextDocument) :voi
  * en alguno de los niveles disponibles (global, workspace o carpeta).
  *  
  * @returns {boolean}
- * @version 1.0.0
- * @since 1.0.0
+ * @version 0.0.1
+ * @since 0.0.1
  * @author Walter Ezequiel Puig
  */
 export const hasDefinedTags = (): boolean => {
@@ -241,8 +241,8 @@ export const hasDefinedTags = (): boolean => {
  * 
  * @async
  * @returns {Promise<void>}
- * @version 1.0.0
- * @since 1.0.0
+ * @version 0.0.1
+ * @since 0.0.1
  * @author Walter Ezequiel Puig
  * @example
  * await setDefaultTagsConfiguration();
@@ -262,8 +262,8 @@ export const setDefaultTagsConfiguration = async (): Promise<void> => {
  * @param languageId - ID del lenguaje (e.g., 'javascript')
  * @param type - 'header' | 'footer'
  * @returns {RegExp[]} Lista de expresiones regulares.
- * @version 1.0.0
- * @since 1.0.0
+ * @version 0.0.1
+ * @since 0.0.1
  * @author Walter Ezequiel Puig
  */
 export const getRegexPatternsForLanguage = (languageId: string, type: 'header' | 'footer'): RegExp[] => {
@@ -296,8 +296,8 @@ export const getRegexPatternsForLanguage = (languageId: string, type: 'header' |
  * @example
  * const result = getTagMatchesInDocument(document, footerPatterns, ['error', 'info'], 'footer');
  * // [
- * @version 1.0.0
- * @since 1.0.0
+ * @version 0.0.1
+ * @since 0.0.1
  * @author Walter Ezequiel Puig
  */
 export const getTagMatchData = (
