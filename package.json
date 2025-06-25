@@ -3,12 +3,23 @@
   "displayName": "Color Suit Comments",
   "description": "Allows you to add custom styles and collapsible blocks to code comments using configurable tags to improve code readability.",
   "version": "0.0.1",
-  "publisher": "",
+  "publisher": "Panda-dev",
+  "bugs": {
+    "url": "https://github.com/lordexe22/color-suit-comments/issues"
+  },
+  "homepage": "https://github.com/lordexe22/color-suit-comments#readme",
   "engines": {
     "vscode": "^1.100.0"
   },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/lordexe22/color-suit-comments"
+  },
+  "icon": "media/icon.png",
   "categories": [
-    "Other"
+    "Themes",
+    "Linters",
+    "Snippets"
   ],
   "activationEvents": [
     "onStartupFinished",

@@ -33,3 +33,7 @@ export const DEFAULT_TAGS = [
 
 // Lista de decoraciones activas para poder limpiarlas en cada actualización
 export const activeDecorationsMap = new Map<string, vscode.TextEditorDecorationType[]>();
+
+
+
+

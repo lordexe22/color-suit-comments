@@ -1,4 +1,4 @@
-# color-suit-comments README
+# Color-Suit-Comments
 
 Color Suit Comments is a Visual Studio Code extension that allows you to add custom styles to code comments using configurable tags.
 
@@ -10,16 +10,7 @@ Currently compatible with JavaScript and TypeScript.
 
 ## Features
 
-- Apply **custom styles** to code comments using configurable tags (text color and background). The available default tags are:
-
-  <div style="color:#ff4d4f; background-color:#ff4d4f10">//#error</div>
-  <div style="color:#ff4d4f; background-color:#ff4d4f10; margin-bottom:5px;">//#end-error</div>
-  <div style="color:#ffff4f; background-color:#ffff4f10">//#warning</div>
-  <div style="color:#ffff4f; background-color:#ffff4f10;  margin-bottom:5px;">//#end-warning</div>
-  <div style="color:#ffa04f; background-color:#ffa04f10">//#todo</div>
-  <div style="color:#ffa04f; background-color:#ffa04f10;  margin-bottom:5px;">//#end-todo</div>
-  <div style="color:#4080f0; background-color:#4080f010">//#info</div>
-  <div style="color:#4080f0; background-color:#4080f010">//#end-info</div>
+- Apply **custom styles** to code comments using configurable tags (text color and background)
 
 - Define **collapsible blocks** using matching opening and closing tags.
 
@@ -31,15 +22,15 @@ Currently compatible with JavaScript and TypeScript.
 
   ![Opening settings.json](media/open-settings.gif)
 
-- 🔀 Use the **Toggle Blocks** command to collapse or expand all tag-defined blocks with one click.
+- Use the **Toggle Blocks** command to collapse or expand all tag-defined blocks with one click.
 
   ![Toggle collapse block example](media/colapse-blocks.gif)
 
-- 🔁 Automatically updates **in real time** as you type.
+- Automatically updates **in real time** as you type.
 
   ![Decorate in real time](media/real-time-example.gif)
 
-- 📁 Works across **multiple open files** simultaneously.
+- Works across **multiple open files** simultaneously.
 
 ## Requirements
 
@@ -61,43 +52,22 @@ You can edit these settings directly via the command **"Edit tags"**, which open
 
 ## Known Issues
 
-Calling out known issues can help limit users opening duplicate issues against your extension.
+Currently, the extension only works with JavaScript and TypeScript files.
+- In some light themes, the default tag styles (especially with opacity) may not be fully readable. Users are encouraged to adjust the tag colors via `settings.json` to match their theme.
+- When using multi-line comment blocks (`/* */`), applying a tag with a background color that includes opacity may result in slightly overlapping decorations on inner lines.
+- Collapsible blocks require matching opening and closing tags with the same context. Incorrectly nested tags will not be considered collapsible, but will still apply styles individually.
+- The snippet suggestions that appear after typing `#` may be slightly delayed the first time they are triggered.
 
 ## Release Notes
 
-Users appreciate release notes as you update your extension.
+### 0.0.1
 
-### 1.0.0
+Initial release of **Color Suit Comments**.
 
-Initial release of ...
-
-### 1.0.1
-
-Fixed issue #.
-
-### 1.1.0
-
-Added features X, Y, and Z.
-
----
-
-## Following extension guidelines
-
-Ensure that you've read through the extensions guidelines and follow the best practices for creating your extension.
-
-* [Extension Guidelines](https://code.visualstudio.com/api/references/extension-guidelines)
-
-## Working with Markdown
-
-You can author your README using Visual Studio Code. Here are some useful editor keyboard shortcuts:
-
-* Split the editor (`Cmd+\` on macOS or `Ctrl+\` on Windows and Linux).
-* Toggle preview (`Shift+Cmd+V` on macOS or `Shift+Ctrl+V` on Windows and Linux).
-* Press `Ctrl+Space` (Windows, Linux, macOS) to see a list of Markdown snippets.
-
-## For more information
-
-* [Visual Studio Code's Markdown Support](http://code.visualstudio.com/docs/languages/markdown)
-* [Markdown Syntax Reference](https://help.github.com/articles/markdown-basics/)
-
-**Enjoy!**
+- Apply custom styles to code comments using configurable tags (`color` and `backgroundColor`).
+- Define collapsible comment blocks with matching opening and closing tags.
+- Edit tag settings directly from the editor via the **Edit Tags** command.
+- Toggle all collapsible blocks at once with the **Toggle Collapse All** command.
+- Works in real time across multiple files.
+- Includes default tags: `error`, `warning`, `todo`, and `info`.
+- Supports JavaScript and TypeScript.
