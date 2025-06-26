@@ -60,6 +60,11 @@ Currently, the extension only works with JavaScript and TypeScript files.
 
 ## Release Notes
 
+
+### 0.0.2
+
+- Support for comment-based folding blocks in `.html` and `.css` files.
+
 ### 0.0.1
 
 Initial release of **Color Suit Comments**.
