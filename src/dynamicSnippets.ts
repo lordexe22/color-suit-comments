@@ -1,6 +1,6 @@
 // src/dynamicSnippets.ts
 import * as vscode from 'vscode';
-import { getTagNames } from './utils';
+import { getTagNames, getCommentLine } from './utils';
 
 let completionProviderDisposable: vscode.Disposable | null = null;
 
@@ -15,8 +15,6 @@ export function registerDynamicSnippets(context: vscode.ExtensionContext) {
   const selector: vscode.DocumentSelector = [
     { scheme: 'file', language: 'javascript' },
     { scheme: 'file', language: 'typescript' },
-    { scheme: 'file', language: 'javascriptreact' },
-    { scheme: 'file', language: 'typescriptreact' },
     { scheme: 'file', language: 'html' },
     { scheme: 'file', language: 'css' },
   ];
@@ -35,6 +33,7 @@ export function registerDynamicSnippets(context: vscode.ExtensionContext) {
         }
 
         const partialTag = match[1].toLowerCase();
+        const languageId = document.languageId;
 
         // Filtrar etiquetas que coincidan con el texto parcial
         const matchingTags = tags.filter(tag =>
@@ -42,8 +41,11 @@ export function registerDynamicSnippets(context: vscode.ExtensionContext) {
         );
 
         const snippets = matchingTags.flatMap(tag => {
+          const headerText = getCommentLine(languageId, tag);
+          const footerText = getCommentLine(languageId, `end-${tag}`);
+
           const headerItem = new vscode.CompletionItem(`#${tag}`, vscode.CompletionItemKind.Snippet);
-          headerItem.insertText = new vscode.SnippetString(`//#${tag}`);
+          headerItem.insertText = new vscode.SnippetString(headerText);
           headerItem.detail = `Insert header for #${tag}`;
           headerItem.documentation = new vscode.MarkdownString(`Folding header for tag **${tag}**`);
           headerItem.range = new vscode.Range(
@@ -52,7 +54,7 @@ export function registerDynamicSnippets(context: vscode.ExtensionContext) {
           );
 
           const footerItem = new vscode.CompletionItem(`#end-${tag}`, vscode.CompletionItemKind.Snippet);
-          footerItem.insertText = new vscode.SnippetString(`//#end-${tag}`);
+          footerItem.insertText = new vscode.SnippetString(footerText);
           footerItem.detail = `Insert footer for #${tag}`;
           footerItem.documentation = new vscode.MarkdownString(`Folding footer for tag **${tag}**`);
           footerItem.range = new vscode.Range(

@@ -19,7 +19,7 @@ import {
 } from './types';
 //#endregion
 //#region ⁡⁢⁣⁢Funciones⁡
-//#region ✅ ⁡⁣⁣⁢buildRegexPatternsForHeaderAndFooter⁡ - Retorna un objeto con una lista de los patrones de busqueda de encabezado y pie de los bloques colapsables.
+//#function ✅ ⁡⁣⁣⁢buildRegexPatternsForHeaderAndFooter⁡ - Retorna un objeto con una lista de los patrones de busqueda de encabezado y pie de los bloques colapsables.
 /**
  * Genera listas de expresiones regulares para identificar encabezados (`header`) y pies (`footer`)
  * de bloques colapsables dentro de un documento de texto en función del lenguaje y las etiquetas definidas.
@@ -54,8 +54,8 @@ export const buildRegexPatternsForHeaderAndFooter = (tags: string[], languageId:
   //#endregion
   return { headerPatterns, footerPatterns };
 };
-//#endregion
-//#region ✅ ⁡⁣⁣⁢clearDecorationsForDocument⁡ - Elimina decoradores activos de un documento antes de aplicar nuevos.
+//#end-function
+//#function ✅ ⁡⁣⁣⁢clearDecorationsForDocument⁡ - Elimina decoradores activos de un documento antes de aplicar nuevos.
 /**
  * Elimina todas las decoraciones visuales activas asociadas a un documento específico.
  * 
@@ -85,8 +85,8 @@ export const clearDecorationsForDocument = (document: vscode.TextDocument) => {
     activeDecorationsMap.delete(key);
   }
 };
-//#endregion
-//#region ✅ ⁡⁣⁣⁢getTagsConfiguration⁡ - Obtiene la configuración completa de las etiquetas desde settings.json
+//#end-function
+//#function ✅ ⁡⁣⁣⁢getTagsConfiguration⁡ - Obtiene la configuración completa de las etiquetas desde settings.json
 /**
  * Obtiene la configuración de etiquetas definida por el usuario en el archivo
  * `settings.json`, bajo la clave personalizada del workspace (`colorSuitComments.tags`).
@@ -121,8 +121,8 @@ export const getTagsConfiguration = (): TagConfig[] => {
 
   return rawConfig.filter(isValid);
 };
-//#endregion
-//#region ✅ ⁡⁣⁣⁢getWorkspaceConfiguration⁡ - Obtiene la configuración global del workspace
+//#end-function
+//#function ✅ ⁡⁣⁣⁢getWorkspaceConfiguration⁡ - Obtiene la configuración global del workspace
 /** 
  * Retorna el objeto de configuración activo de VS Code.
  *
@@ -141,8 +141,8 @@ export const getTagsConfiguration = (): TagConfig[] => {
 export const getWorkspaceConfiguration = (): vscode.WorkspaceConfiguration => {
   return vscode.workspace.getConfiguration();
 };
-//#endregion
-//#region ✅ ⁡⁣⁣⁢getTagNames⁡ - Devuelve un arreglo con los nombres de las etiquetas existentes en settings.json
+//#end-function
+//#function ✅ ⁡⁣⁣⁢getTagNames⁡ - Devuelve un arreglo con los nombres de las etiquetas existentes en settings.json
 /** 
  * Devuelve una lista con los nombres de las etiquetas existentes en `settings.json`.
  * En caso de tener más de una fuente de configuración, se establece el siguiente orden de prioridad:
@@ -164,8 +164,8 @@ export const getTagNames = (): string[] => {
   const tagNames = tags.map(tag => tag.tag).filter(Boolean);
   return tagNames;
 };
-//#endregion
-//#region ✅ ⁡⁣⁣⁢handleEditCommand⁡ - Función principal del comando 'edit'
+//#end-function
+//#function ✅ ⁡⁣⁣⁢handleEditCommand⁡ - Función principal del comando 'edit'
 /**
  * Función principal del comando `colorSuitComments.edit`. 
  * 
@@ -187,8 +187,8 @@ export const getTagNames = (): string[] => {
 export const handleEditCommand = (): void => {
   vscode.commands.executeCommand('workbench.action.openSettingsJson');
 };
-//#endregion
-//#region ✅ ⁡⁣⁣⁢handleOnDidCloseTextDocument⁡ - Maneja el evento que se dispara al cerrar un documento en el editor.
+//#end-function
+//#function ✅ ⁡⁣⁣⁢handleOnDidCloseTextDocument⁡ - Maneja el evento que se dispara al cerrar un documento en el editor.
 /**
  * Maneja el evento que se dispara al cerrar un documento en el editor.
  * Elimina todas las decoraciones asociadas al documento cerrado y limpia la referencia
@@ -211,8 +211,8 @@ export const handleOnDidCloseTextDocument = (document: vscode.TextDocument) :voi
       activeDecorationsMap.delete(docUri);
     }  
 };
-//#endregion
-//#region ✅ ⁡⁣⁣⁢hasDefinedTags⁡ -  Verifica si existen etiquetas dentro de settings.json
+//#end-function
+//#function ✅ ⁡⁣⁣⁢hasDefinedTags⁡ -  Verifica si existen etiquetas dentro de settings.json
 /** 
  * Verifica la existencia de etiquetas dentro de `colorSuitComments.tags` en `settings.json`
  * en alguno de los niveles disponibles (global, workspace o carpeta).
@@ -232,8 +232,8 @@ export const hasDefinedTags = (): boolean => {
     userValue?.workspaceFolderValue
   );
 };
-//#endregion
-//#region ✅ ⁡⁣⁣⁢setDefaultTagsConfiguration⁡ -  Establece los valores por defecto en el settings.json global
+//#end-function
+//#function ✅ ⁡⁣⁣⁢setDefaultTagsConfiguration⁡ -  Establece los valores por defecto en el settings.json global
 /** 
  * Establece los valores por defecto para los comentarios en el archivo `settings.json` global.
  * Utiliza la API de VSCode para actualizar la configuración persistente del usuario.
@@ -251,10 +251,10 @@ export const setDefaultTagsConfiguration = async (): Promise<void> => {
   const config = getWorkspaceConfiguration();
   await config.update(CONFIG_KEY, DEFAULT_TAGS, vscode.ConfigurationTarget.Global);
 };
-//#endregion
+//#end-function
 //#endregion
 //#region ⁡⁢⁣⁢Refactorizar⁡
-//#region 🕒 ⁡⁣⁣⁢getRegexPatternsForLanguage⁡ - Retorna un arreglo de regex base para header o footer según el tipo
+//#function 🕒 ⁡⁣⁣⁢getRegexPatternsForLanguage⁡ - Retorna un arreglo de regex base para header o footer según el tipo
 /**
  * Retorna un arreglo con expresiones regulares para un identificar los patrones de apertura y cierre de los bloques colapsables.
  * Funciona para diferentes lenguajes de programación y identifica el patrón de apertura o el de cierre del bloque colapsable.
@@ -275,12 +275,20 @@ export const getRegexPatternsForLanguage = (languageId: string, type: 'header' |
         new RegExp(`/(\\*)+(\\s|\\*)*${prefix}\${tag}(?=[\\s\\*\\/])[\\s\\S]*?\\*/`, 'gm'),
         new RegExp(`//\\s*${prefix}\${tag}\\b.*$`, 'gm')
       ];
+    case 'css':
+      return[
+        new RegExp(`/(\\*)+(\\s|\\*)*${prefix}\${tag}(?=[\\s\\*\\/])[\\s\\S]*?\\*/`, 'gm')
+      ];
+    case 'html':
+      return[
+        new RegExp(`<!--\\s*${prefix}\\\${tag}\\b[\\s\\S]*?-->`, 'gm')      
+      ];
     default:
       return [];
   }
 };
-//#endregion
-//#region 🕒 ⁡⁣⁣⁢getTagMatchData⁡ - Retorna coincidencias con su tag, tipo y rango
+//#end-function
+//#function 🕒 ⁡⁣⁣⁢getTagMatchData⁡ - Retorna coincidencias con su tag, tipo y rango
 /**
  * Busca coincidencias entre una lista de expresiones regulares y un documento de VSCode,
  * y devuelve un arreglo de objetos `TagMatch`, que contienen el rango de la coincidencia,
@@ -332,8 +340,8 @@ export const getTagMatchData = (
 
   return matches;
 };
-//#endregion
-//#region 🕒 ⁡⁣⁣⁢buildResolvedDecorations⁡ - Une coincidencias con configuraciones
+//#end-function
+//#function 🕒 ⁡⁣⁣⁢buildResolvedDecorations⁡ - Une coincidencias con configuraciones
 /**
  * Combina una lista de coincidencias (TagMatch) con la configuración de etiquetas (TagConfig)
  * para obtener decoradores resueltos por coincidencia.
@@ -371,8 +379,8 @@ export const buildResolvedDecorations = (
     
 };
 
-//#endregion
-//#region 🕒 ⁡⁣⁣⁢resolveTagBlocks⁡ - Retorna un objeto que identifica el rango de los bloques y de los huerfanos del documento
+//#end-function
+//#function 🕒 ⁡⁣⁣⁢resolveTagBlocks⁡ - Retorna un objeto que identifica el rango de los bloques y de los huerfanos del documento
 export function resolveTagBlocks(tagsCommentData: TagComment[]): ResolvedTags {
   const blocks: BlockResult[] = [];
   const orphans: OrphanResult[] = [];
@@ -440,8 +448,8 @@ export function resolveTagBlocks(tagsCommentData: TagComment[]): ResolvedTags {
 
   return { blocks, orphans };
 }
-//#endregion
-//#region 🕒 ⁡⁣⁣⁢decorateDocument⁡ - Maneja la activación de decoraciones al abrir un documento
+//#end-function
+//#function 🕒 ⁡⁣⁣⁢decorateDocument⁡ - Maneja la activación de decoraciones al abrir un documento
 /** Maneja la activación de decoraciones al abrir un documento */
 export const decorateDocument = (context: vscode.ExtensionContext, document: vscode.TextDocument) => {
   //#region ✅1. Obtener etiquetas y lenguaje del documento actual y una referencia al editor -> ⁡⁣⁢⁣tags⁡, ⁡⁣⁢⁣languageId⁡, ⁡⁣⁢⁣editor⁡
@@ -482,8 +490,8 @@ export const decorateDocument = (context: vscode.ExtensionContext, document: vsc
   }
   //#endregion
 };
-//#endregion
-//#region 🕒 ⁡⁣⁣⁢applyDecorationsForBlockContent⁡
+//#end-function
+//#function 🕒 ⁡⁣⁣⁢applyDecorationsForBlockContent⁡
 export const applyDecorationsForBlockContent = (
   editor:vscode.TextEditor, 
   tagsConfig:TagConfig[],
@@ -518,8 +526,8 @@ export const applyDecorationsForBlockContent = (
     activeDecorationsMap.get(key)?.push(backgroundDecorator);
   }
 };
-//#endregion
-//#region 🕒 ⁡⁣⁣⁢applyDecorationsForTagComments⁡
+//#end-function
+//#function 🕒 ⁡⁣⁣⁢applyDecorationsForTagComments⁡
 export const applyDecorationsForTagComments = (
   editor: vscode.TextEditor,
   tagsCommentData: ResolvedTagDecoration[]
@@ -558,8 +566,8 @@ export const applyDecorationsForTagComments = (
     
   }
 };
-//#endregion
-//#region 🕒 ⁡⁣⁣⁢applyFoldingForBlocks⁡
+//#end-function
+//#function 🕒 ⁡⁣⁣⁢applyFoldingForBlocks⁡
 let foldingProviderDisposable: vscode.Disposable | null = null;
 export const applyFoldingForBlocks = (
   document: vscode.TextDocument,
@@ -592,7 +600,7 @@ export const applyFoldingForBlocks = (
   foldingProviderDisposable = vscode.languages.registerFoldingRangeProvider(selector, provider);
   context.subscriptions.push(foldingProviderDisposable);
 };
-//#endregion
+//#end-function
 
 
 export async function collapseAll() {
@@ -664,5 +672,37 @@ export async function handleToggleCollapse() {
   isCollapsed = !isCollapsed; // Cambiar estado para próxima ejecución
 }
 
+//#function getCommentLine - Retorna una línea de comentario formateado para la extensión del documento actual
+/**
+ * Genera una línea de comentario con una etiqueta formateada según el lenguaje del documento.
+ * Se prioriza el estilo de comentario de una sola línea.
+ * 
+ * @param languageId - ID del lenguaje (e.g., 'javascript', 'css', 'html')
+ * @param tag - Etiqueta como 'header' o 'end-header'
+ * @returns Línea de comentario con formato adaptado
+ * @version 0.0.2
+ * @since 0.0.2
+ * @author Walter Ezequiel Puig
+ */
+export const getCommentLine = (
+  languageId: string,
+  tag: string
+): string => {
+  switch (languageId) {
+    case 'javascript':
+    case 'typescript':
+      return `// #${tag}`;
+    case 'css':
+      return `/* #${tag} */`;
+    case 'html':
+      return `<!-- #${tag} -->`;
+    default:
+      return `#${tag}`; // fallback genérico
+  }
+};
+//#end-function
+
 
 //#endregion
+
+
