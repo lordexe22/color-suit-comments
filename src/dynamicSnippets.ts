@@ -17,6 +17,12 @@ export function registerDynamicSnippets(context: vscode.ExtensionContext) {
     { scheme: 'file', language: 'typescript' },
     { scheme: 'file', language: 'html' },
     { scheme: 'file', language: 'css' },
+    { scheme: 'file', language: 'python' },
+    { scheme: 'file', language: 'java' },
+    { scheme: 'file', language: 'c' },
+    { scheme: 'file', language: 'cpp' },
+    { scheme: 'file', language: 'csharp' },
+    { scheme: 'file', language: 'php' },
   ];
 
   completionProviderDisposable = vscode.languages.registerCompletionItemProvider(

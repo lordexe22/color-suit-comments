@@ -37,3 +37,5 @@ export const activeDecorationsMap = new Map<string, vscode.TextEditorDecorationT
 
 
 
+
+// #end-error

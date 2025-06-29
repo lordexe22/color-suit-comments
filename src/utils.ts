@@ -262,7 +262,7 @@ export const setDefaultTagsConfiguration = async (): Promise<void> => {
  * @param languageId - ID del lenguaje (e.g., 'javascript')
  * @param type - 'header' | 'footer'
  * @returns {RegExp[]} Lista de expresiones regulares.
- * @version 0.0.1
+ * @version 0.0.3
  * @since 0.0.1
  * @author Walter Ezequiel Puig
  */
@@ -271,6 +271,10 @@ export const getRegexPatternsForLanguage = (languageId: string, type: 'header' |
   switch (languageId) {
     case 'javascript':
     case 'typescript':
+    case 'c':
+    case 'cpp':
+    case 'csharp':
+    case 'java':
       return [
         new RegExp(`/(\\*)+(\\s|\\*)*${prefix}\${tag}(?=[\\s\\*\\/])[\\s\\S]*?\\*/`, 'gm'),
         new RegExp(`//\\s*${prefix}\${tag}\\b.*$`, 'gm')
@@ -282,6 +286,16 @@ export const getRegexPatternsForLanguage = (languageId: string, type: 'header' |
     case 'html':
       return[
         new RegExp(`<!--\\s*${prefix}\\\${tag}\\b[\\s\\S]*?-->`, 'gm')      
+      ];
+    case 'python':
+      return [
+        new RegExp(`#(\\s|#)*${prefix}\${tag}(.)*(\\n)?`, 'gm')
+      ];
+    case 'php':
+      return [
+        new RegExp(`/(\\*)+(\\s|\\*)*${prefix}\${tag}(?=[\\s\\*\\/])[\\s\\S]*?\\*/`, 'gm'),
+        new RegExp(`//\\s*${prefix}\${tag}\\b.*$`, 'gm'),
+        new RegExp(`#(\\s|#)*${prefix}\${tag}(.)*(\\n)?`, 'gm')
       ];
     default:
       return [];
@@ -601,8 +615,7 @@ export const applyFoldingForBlocks = (
   context.subscriptions.push(foldingProviderDisposable);
 };
 //#end-function
-
-
+//#function 🕒 collapseAll
 export async function collapseAll() {
   const editor = vscode.window.activeTextEditor;
   if (!editor) { return; }
@@ -621,7 +634,8 @@ export async function collapseAll() {
     await vscode.commands.executeCommand('editor.fold', { selectionLines: [block.range.start.line] });
   }
 }
-
+// #end-function
+//#function 🕒 expandAll
 export async function expandAll() {
   const editor = vscode.window.activeTextEditor;
   if (!editor) { return; }
@@ -640,9 +654,9 @@ export async function expandAll() {
     await vscode.commands.executeCommand('editor.unfold', { selectionLines: [block.range.start.line] });
   }
 }
-
+// #end-function
+//#function 🕒 handleToggleCollapse
 let isCollapsed = false; // Estado global para toggle
-
 export async function handleToggleCollapse() {
   const editor = vscode.window.activeTextEditor;
   if (!editor) { return; }
@@ -671,8 +685,8 @@ export async function handleToggleCollapse() {
 
   isCollapsed = !isCollapsed; // Cambiar estado para próxima ejecución
 }
-
-//#function getCommentLine - Retorna una línea de comentario formateado para la extensión del documento actual
+// #end-function
+//#function 🕒 getCommentLine - Retorna una línea de comentario formateado para la extensión del documento actual
 /**
  * Genera una línea de comentario con una etiqueta formateada según el lenguaje del documento.
  * Se prioriza el estilo de comentario de una sola línea.
@@ -680,8 +694,8 @@ export async function handleToggleCollapse() {
  * @param languageId - ID del lenguaje (e.g., 'javascript', 'css', 'html')
  * @param tag - Etiqueta como 'header' o 'end-header'
  * @returns Línea de comentario con formato adaptado
- * @version 0.0.2
- * @since 0.0.2
+ * @version 0.0.3
+ * @since 0.0.3
  * @author Walter Ezequiel Puig
  */
 export const getCommentLine = (
@@ -691,18 +705,23 @@ export const getCommentLine = (
   switch (languageId) {
     case 'javascript':
     case 'typescript':
+    case 'c':
+    case 'cpp':
+    case 'csharp':
+    case 'java':
+    case 'php':
       return `// #${tag}`;
     case 'css':
       return `/* #${tag} */`;
     case 'html':
       return `<!-- #${tag} -->`;
+    case 'python':
+      return `# #${tag}`;
     default:
       return `#${tag}`; // fallback genérico
   }
 };
 //#end-function
-
-
 //#endregion
 
 

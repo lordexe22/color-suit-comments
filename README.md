@@ -6,7 +6,7 @@ You can also create collapsible blocks by using matching opening and closing tag
 
 The extension works in real time, supports multi-file visualization, and can be fully customized via the `settings.json` file.
 
-Currently compatible with JavaScript and TypeScript.
+Currently compatible with JavaScript, TypeScript, HTML, CSS, Python, PHP, C, C++, and C#.
 
 ## Features
 
@@ -16,8 +16,7 @@ Currently compatible with JavaScript and TypeScript.
 
   ![Presentation example](media/presentation-example.png)
 
-
-- Easily access and edit the configuration via a dedicated **Edit Settings** menu option.
+- Easily access and edit the configuration via a dedicated **Edit tags** menu option.
 - Ships with a default set of tags, but you can **add, remove, or edit** them via `settings.json`.
 
   ![Opening settings.json](media/open-settings.gif)
@@ -38,7 +37,6 @@ There are no additional requirements or dependencies needed to use this extensio
 
 ## Extension Settings
 
-
 This extension contributes the following setting:
 
 - `colorSuitComments.tags`:  
@@ -50,6 +48,20 @@ This extension contributes the following setting:
 
 You can edit these settings directly via the command **"Edit tags"**, which opens your `settings.json` file.
 
+## Supported Languages
+
+Color Suit Comments supports comment-based tagging and folding in the following languages:
+
+- HTML (`.html`)
+- CSS (`.css`)
+- JavaScript (`.js`)
+- TypeScript (`.ts`)
+- Python (`.py`)
+- PHP (`.php`)
+- C (`.c`)
+- C++ (`.cpp`)
+- C# (`.cs`)
+
 ## Known Issues
 
 Currently, the extension only works with JavaScript and TypeScript files.
@@ -60,6 +72,9 @@ Currently, the extension only works with JavaScript and TypeScript files.
 
 ## Release Notes
 
+### 0.0.3
+
+- Support for comment-based folding blocks in `.c`, `.cpp`, `.cs`, `php` and `python` files.
 
 ### 0.0.2
 
