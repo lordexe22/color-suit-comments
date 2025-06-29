@@ -62,6 +62,8 @@ Color Suit Comments supports comment-based tagging and folding in the following 
 - C++ (`.cpp`)
 - C# (`.cs`)
 
+> Support for additional languages may be added in future versions.
+
 ## Known Issues
 
 Currently, the extension only works with JavaScript and TypeScript files.
@@ -69,6 +71,12 @@ Currently, the extension only works with JavaScript and TypeScript files.
 - When using multi-line comment blocks (`/* */`), applying a tag with a background color that includes opacity may result in slightly overlapping decorations on inner lines.
 - Collapsible blocks require matching opening and closing tags with the same context. Incorrectly nested tags will not be considered collapsible, but will still apply styles individually.
 - The snippet suggestions that appear after typing `#` may be slightly delayed the first time they are triggered.
+
+## Report Issues
+
+If you encounter a bug, unexpected behavior, or have a feature request, please open an issue on the GitHub repository:
+
+[Report an issue](https://github.com/lordexe22/color-suit-comments/issues)
 
 ## Release Notes
 
