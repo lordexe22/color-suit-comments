@@ -15,6 +15,8 @@ export function registerDynamicSnippets(context: vscode.ExtensionContext) {
   const selector: vscode.DocumentSelector = [
     { scheme: 'file', language: 'javascript' },
     { scheme: 'file', language: 'typescript' },
+    { scheme: 'file', language: 'javascriptreact' },
+    { scheme: 'file', language: 'typescriptreact' },
     { scheme: 'file', language: 'html' },
     { scheme: 'file', language: 'css' },
     { scheme: 'file', language: 'python' },

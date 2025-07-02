@@ -262,12 +262,18 @@ export const setDefaultTagsConfiguration = async (): Promise<void> => {
  * @param languageId - ID del lenguaje (e.g., 'javascript')
  * @param type - 'header' | 'footer'
  * @returns {RegExp[]} Lista de expresiones regulares.
- * @version 0.0.3
+ * @version 0.0.4
  * @since 0.0.1
  * @author Walter Ezequiel Puig
  */
 export const getRegexPatternsForLanguage = (languageId: string, type: 'header' | 'footer'): RegExp[] => {
   const prefix = type === 'header' ? '#' : '#end-';
+
+  const singleLineComment = new RegExp(`//\\s*${prefix}\${tag}\\b.*$`, 'gm');
+  const multiLineComment = new RegExp(`/(\\*)+(\\s|\\*)*${prefix}\${tag}(?=[\\s\\*\\/])[\\s\\S]*?\\*/`, 'gm');
+  const numeralComment = new RegExp(`#(\\s|#)*${prefix}\${tag}(.)*(\\n)?`, 'gm');
+  const jsxComment = new RegExp(`\\{\\/\\*\\s*${prefix}\\\${tag}\\s*\\*\\/\\}`, 'gm');
+
   switch (languageId) {
     case 'javascript':
     case 'typescript':
@@ -276,12 +282,12 @@ export const getRegexPatternsForLanguage = (languageId: string, type: 'header' |
     case 'csharp':
     case 'java':
       return [
-        new RegExp(`/(\\*)+(\\s|\\*)*${prefix}\${tag}(?=[\\s\\*\\/])[\\s\\S]*?\\*/`, 'gm'),
-        new RegExp(`//\\s*${prefix}\${tag}\\b.*$`, 'gm')
+        singleLineComment,
+        multiLineComment,
       ];
     case 'css':
       return[
-        new RegExp(`/(\\*)+(\\s|\\*)*${prefix}\${tag}(?=[\\s\\*\\/])[\\s\\S]*?\\*/`, 'gm')
+        multiLineComment
       ];
     case 'html':
       return[
@@ -289,14 +295,17 @@ export const getRegexPatternsForLanguage = (languageId: string, type: 'header' |
       ];
     case 'python':
       return [
-        new RegExp(`#(\\s|#)*${prefix}\${tag}(.)*(\\n)?`, 'gm')
+        numeralComment
       ];
     case 'php':
       return [
-        new RegExp(`/(\\*)+(\\s|\\*)*${prefix}\${tag}(?=[\\s\\*\\/])[\\s\\S]*?\\*/`, 'gm'),
-        new RegExp(`//\\s*${prefix}\${tag}\\b.*$`, 'gm'),
-        new RegExp(`#(\\s|#)*${prefix}\${tag}(.)*(\\n)?`, 'gm')
+        singleLineComment,
+        multiLineComment,
+        numeralComment
       ];
+    case 'javascriptreact':
+    case 'typescriptreact':
+      return [multiLineComment, singleLineComment, jsxComment];
     default:
       return [];
   }
@@ -694,7 +703,7 @@ export async function handleToggleCollapse() {
  * @param languageId - ID del lenguaje (e.g., 'javascript', 'css', 'html')
  * @param tag - Etiqueta como 'header' o 'end-header'
  * @returns Línea de comentario con formato adaptado
- * @version 0.0.3
+ * @version 0.0.4
  * @since 0.0.3
  * @author Walter Ezequiel Puig
  */
@@ -704,6 +713,8 @@ export const getCommentLine = (
 ): string => {
   switch (languageId) {
     case 'javascript':
+    case 'typescriptreact':
+    case 'javascriptreact':
     case 'typescript':
     case 'c':
     case 'cpp':

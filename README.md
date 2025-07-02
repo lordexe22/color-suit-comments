@@ -56,6 +56,8 @@ Color Suit Comments supports comment-based tagging and folding in the following 
 - CSS (`.css`)
 - JavaScript (`.js`)
 - TypeScript (`.ts`)
+- JavaScriptReact (`.jsx`)
+- TypeScriptReact (`.tsx`)
 - Python (`.py`)
 - PHP (`.php`)
 - C (`.c`)
@@ -79,6 +81,10 @@ If you encounter a bug, unexpected behavior, or have a feature request, please o
 [Report an issue](https://github.com/lordexe22/color-suit-comments/issues)
 
 ## Release Notes
+
+### 0.0.4
+
+- Support for comment-based folding blocks in `.jsx`and `.tsx` files.
 
 ### 0.0.3
 
